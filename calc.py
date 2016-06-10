@@ -10,16 +10,18 @@ keywords = (
 tokens = (
              'ID', 'NUMBER',
              'LBRACE', 'RBRACE',
+             'ARROW'
          ) + keywords
 
 keyword_tokens = dict((kw.lower(), kw) for kw in keywords)
 
-literals = ['=', '+', '-', '*', '/', '(', ')', ';']
+literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',']
 
 # Tokens
 
 t_LBRACE = r'{'
 t_RBRACE = r'}'
+t_ARROW = r'=>'
 
 
 def t_ID(t):
@@ -64,7 +66,7 @@ class Expression:
     def evaluate(self, scope):
         raise NotImplemented()
 
-    def names(self):
+    def names(self) -> set:
         raise NotImplemented()
 
     def __add__(self, other):
@@ -72,7 +74,7 @@ class Expression:
 
 
 class Literal(Expression):
-    def __init__(self, value):
+    def __init__(self, value: int):
         self.value = value
 
     def evaluate(self, scope):
@@ -91,7 +93,7 @@ class NumberLiteral(Literal):
 
 
 class BinOp(Expression):
-    def __init__(self, lhs, op, rhs):
+    def __init__(self, lhs: Expression, op: str, rhs: Expression):
         self.lhs = lhs
         self.op = op
         self.rhs = rhs
@@ -122,6 +124,7 @@ class Reference(Expression):
     def __repr__(self):
         return 'Reference<%s>' % self.name
 
+
 class Let:
     def __init__(self, name: str, expression: Expression):
         self.name = name
@@ -129,6 +132,7 @@ class Let:
 
     def __repr__(self):
         return 'Let<%s %r>' % (self.name, self.expression)
+
 
 class Block(Expression):
     def __init__(self, lets: List[Let], expression: Expression):
@@ -145,24 +149,72 @@ class Block(Expression):
         names = set()
         for let in self.lets:
             names |= let.expression.names()
-        return names | self.expression.names()
+        return names | (self.expression.names() - set(let.name for let in self.lets))
 
     def __repr__(self):
         return 'Block<%r, %r>' % (self.lets, self.expression)
 
 
+class Function(Expression):
+    def __init__(self, arguments: List[str], expression: Expression):
+        self.arguments = arguments
+        self.expression = expression
+
+    def evaluate(self, scope):
+        return BoundFunction(self, scope)
+
+    def names(self):
+        return self.expression.names() - set(self.arguments)
+
+    def __repr__(self):
+        return 'Function<%r, %r>' % (self.arguments, self.expression)
+
+
+class BoundFunction(Expression):
+    def __init__(self, function: Function, scope: dict):
+        self.function = function
+        self.closure = {name: scope[name] for name in function.names()}
+
+    def evaluate(self, scope):
+        scope = dict(scope)
+        scope.update(self.closure)
+        # TODO: where do the args go
+        return self.function.expression.evaluate(scope)
+
+class FunctionCall(Expression):
+    def __init__(self, expression: Expression, arguments: List[Expression]):
+        self.function_expression = expression
+        self.arguments = arguments
+
+    def evaluate(self, scope):
+        function = self.function_expression.evaluate(scope)
+        assert isinstance(function, BoundFunction)
+        # TODO: really, where do the args go?
+        return function.evaluate(scope)
+
+    def names(self):
+        names = set()
+        for arg in self.arguments:
+            names |= arg.names()
+        return names
+
+    def __repr__(self):
+        return 'FunctionCall<%r, %r>' % (self.arguments, self.function_expression)
 
 def p_let(p):
     'let : LET ID "=" expression ";"'
     p[0] = Let(p[2], p[4])
 
+
 def p_lets_empty(p):
     'lets : '
     p[0] = []
 
+
 def p_lets_recurse(p):
     'lets : lets let'
     p[0] = p[1] + [p[2]]
+
 
 def p_expression_binop(p):
     '''expression : expression '+' expression
@@ -193,6 +245,35 @@ def p_expression_number(p):
     "expression : NUMBER"
     p[0] = NumberLiteral(p[1])
 
+def p_function_call(p):
+    'function_call : expression "(" ")"'
+    # TODO: fix precedence of this
+    p[0] = FunctionCall(p[1], [])
+
+def p_expression_function_call(p):
+    'expression : function_call'
+    p[0] = p[1]
+
+def p_function_arguments_empty(p):
+    'function_arguments : '
+    p[0] = []
+
+def p_function_arguments_more(p):
+    'function_arguments : function_arguments_more'
+    p[0] = p[1]
+
+def p_function_arguments_more_initial(p):
+    'function_arguments_more : ID'
+    p[0] = [p[1]]
+
+def p_function_arguments_more_recurse(p):
+    'function_arguments_more : function_arguments_more "," ID'
+    p[0] = p[1] + [p[3]]
+
+def p_expression_function(p):
+    'expression : "(" function_arguments ")" ARROW expression'
+    p[0] = Function(p[2], p[5])
+
 
 def p_expression_name(p):
     "expression : ID"
@@ -216,10 +297,10 @@ yacc.yacc(start='expression')
 tree = yacc.parse('''
 {
     let a=x+1;
-    let b={
+    let b= (i, j) => {
         return 10;
     };
-    return 1+2+a+b+x;
+    return 1+2+a+x+(b());
 }
 ''')
 print('tree: %r' % tree)
