@@ -12,7 +12,7 @@ tokens = (
 
 keyword_tokens = dict((kw.lower(), kw) for kw in keywords)
 
-literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',']
+literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':']
 
 # Tokens
 

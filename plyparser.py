@@ -1,5 +1,6 @@
 from plylexer import tokens
 from tree import *
+from type import named as type_named
 import ply.yacc as yacc
 
 
@@ -12,6 +13,22 @@ precedence = (
     ('right', 'FUNCTION_CALL'),
 )
 
+
+def p_type(p):
+    'type : ID'
+    p[0] = type_named(p[1])
+
+def p_type_spec(p):
+    'type_spec : ":" type'
+    p[0] = p[2]
+
+def p_type_spec_opt_none(p):
+    'type_spec_opt :'
+    p[0] = None
+
+def p_type_spec_opt_type_spec(p):
+    'type_spec_opt : type_spec'
+    p[0] = p[1]
 
 def p_let(p):
     'let : LET ID "=" expression ";"'
@@ -82,13 +99,16 @@ def p_expression_function_call(p):
     'expression : function_call %prec FUNCTION_CALL'
     p[0] = p[1]
 
+def p_function_argument(p):
+    'function_argument : ID type_spec_opt'
+    p[0] = (p[1], p[2])
+
 def p_function_arguments_id(p):
-    'function_arguments : ID'
+    'function_arguments : function_argument'
     p[0] = [p[1]]
 
 def p_function_arguments_recurse(p):
-    'function_arguments : function_arguments "," ID'
-    print('function arguments p=%r' % p)
+    'function_arguments : function_arguments "," function_argument'
     p[0] = p[1] + [p[3]]
 
 def p_function_arguments_opt_none(p):

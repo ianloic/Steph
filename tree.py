@@ -1,4 +1,7 @@
-from typing import List
+from typing import List, Tuple
+
+import type as T
+
 
 class Expression:
     def evaluate(self, scope):
@@ -7,12 +10,15 @@ class Expression:
     def names(self) -> set:
         raise NotImplemented()
 
+    def type(self, scope) -> T.Type:
+        raise Exception('type() not implemented in %s' % self.__class__.__name__)
+
     def __add__(self, other):
         return BinOp(self, '+', other)
 
 
 class Literal(Expression):
-    def __init__(self, value: int):
+    def __init__(self, value):
         self.value = value
 
     def evaluate(self, scope):
@@ -23,8 +29,11 @@ class Literal(Expression):
 
 
 class NumberLiteral(Literal):
-    def __init__(self, value):
+    def __init__(self, value: int):
         super().__init__(value)
+
+    def type(self, scope):
+        return T.NUMBER
 
     def __repr__(self):
         return 'Number<%d>' % self.value
@@ -41,6 +50,13 @@ class BinOp(Expression):
             return self.lhs.evaluate(scope) + self.rhs.evaluate(scope)
         else:
             raise NotImplemented()
+
+    def type(self, scope):
+        lhs = self.lhs.type(scope)
+        rhs = self.rhs.type(scope)
+        if lhs != rhs:
+            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, lhs, rhs))
+        return lhs
 
     def names(self):
         return self.lhs.names().union(self.rhs.names())
@@ -59,6 +75,9 @@ class Reference(Expression):
     def names(self):
         return frozenset([self.name])
 
+    def type(self, scope):
+        return scope[self.name]
+
     def __repr__(self):
         return 'Reference<%s>' % self.name
 
@@ -74,41 +93,60 @@ class Let:
 
 class Block(Expression):
     def __init__(self, lets: List[Let], expression: Expression):
-        self.lets = lets
+        self.lets = {}
+        for let in lets:
+            if let.name in self.lets:
+                raise Exception('Repeated let name %r' % let.name)
+            self.lets[let.name] = let
         self.expression = expression
 
     def evaluate(self, scope):
         new_scope = dict(scope)
-        for let in self.lets:
-            new_scope[let.name] = let.expression.evaluate(scope)
+        new_scope.update({let.name:let.expression.evaluate(scope) for let in self.lets.values()})
         return self.expression.evaluate(new_scope)
 
     def names(self):
         names = set()
-        for let in self.lets:
+        for let in self.lets.values():
             names |= let.expression.names()
-        return names | (self.expression.names() - set(let.name for let in self.lets))
+        # TODO: what should this do? let foo = bar + foo
+        return names | (self.expression.names() - set(self.lets.keys()))
+
+    def type(self, scope):
+        inner_scope = {}
+        for name in self.expression.names():
+            if name in self.lets:
+                inner_scope[name] = self.lets[name].expression.type(scope)
+            elif name in scope:
+                inner_scope[name] = scope[name]
+            else:
+                raise Exception("Can't find type for name %r" % name)
+        return self.expression.type(inner_scope)
 
     def __repr__(self):
         return 'Block<%r, %r>' % (self.lets, self.expression)
 
 
 class Function(Expression):
-    def __init__(self, arguments: List[str], expression: Expression):
+    def __init__(self, arguments: List[Tuple[str, T.Type]], expression: Expression):
         self.arguments = arguments
         self.expression = expression
 
     def evaluate(self, scope):
         return BoundFunction(self, scope)
 
+    def type(self, scope):
+        # TODO: do we need to fiddle the scope here?
+        return T.Function([arg[1] for arg in self.arguments], self.expression.type(scope))
+
     def names(self):
-        return self.expression.names() - set(self.arguments)
+        return self.expression.names() - set(arg[0] for arg in self.arguments)
 
     def __repr__(self):
-        return 'Function<%r, %r>' % (self.arguments, self.expression)
+        return 'Function<(%s), %r>' % (', '.join('%s:%r' % arg for arg in self.arguments), self.expression)
 
 
-class BoundFunction:
+class BoundFunction(Expression):
     def __init__(self, function: Function, scope: dict):
         self.function = function
         self.closure = {name: scope[name] for name in function.names()}
@@ -130,6 +168,11 @@ class FunctionCall(Expression):
         new_scope = dict(bound_function.closure)
         new_scope.update(dict(zip(function.arguments, argument_values)))
         return function.expression.evaluate(new_scope)
+
+    def type(self, scope):
+        function_type = self.function_expression.type(scope)
+        assert isinstance(function_type, T.Function)
+        return function_type.returns
 
     def names(self):
         names = set()
