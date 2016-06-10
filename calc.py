@@ -59,6 +59,7 @@ precedence = (
     ('left', '+', '-'),
     ('left', '*', '/'),
     ('right', 'UMINUS'),
+    ('right', 'FUNCTION_CALL'),
 )
 
 
@@ -170,16 +171,11 @@ class Function(Expression):
         return 'Function<%r, %r>' % (self.arguments, self.expression)
 
 
-class BoundFunction(Expression):
+class BoundFunction:
     def __init__(self, function: Function, scope: dict):
         self.function = function
         self.closure = {name: scope[name] for name in function.names()}
 
-    def evaluate(self, scope):
-        scope = dict(scope)
-        scope.update(self.closure)
-        # TODO: where do the args go
-        return self.function.expression.evaluate(scope)
 
 class FunctionCall(Expression):
     def __init__(self, expression: Expression, arguments: List[Expression]):
@@ -187,10 +183,16 @@ class FunctionCall(Expression):
         self.arguments = arguments
 
     def evaluate(self, scope):
-        function = self.function_expression.evaluate(scope)
-        assert isinstance(function, BoundFunction)
-        # TODO: really, where do the args go?
-        return function.evaluate(scope)
+        bound_function = self.function_expression.evaluate(scope)
+        assert isinstance(bound_function, BoundFunction)
+
+        function = bound_function.function
+
+        argument_values = [argument.evaluate(scope) for argument in self.arguments]
+
+        new_scope = dict(bound_function.closure)
+        new_scope.update(dict(zip(function.arguments, argument_values)))
+        return function.expression.evaluate(new_scope)
 
     def names(self):
         names = set()
@@ -245,33 +247,50 @@ def p_expression_number(p):
     "expression : NUMBER"
     p[0] = NumberLiteral(p[1])
 
-def p_function_call(p):
-    'function_call : expression "(" ")"'
-    # TODO: fix precedence of this
-    p[0] = FunctionCall(p[1], [])
-
-def p_expression_function_call(p):
-    'expression : function_call'
-    p[0] = p[1]
-
-def p_function_arguments_empty(p):
-    'function_arguments : '
-    p[0] = []
-
-def p_function_arguments_more(p):
-    'function_arguments : function_arguments_more'
-    p[0] = p[1]
-
-def p_function_arguments_more_initial(p):
-    'function_arguments_more : ID'
+def p_function_call_arguments_expression(p):
+    'function_call_arguments : expression'
     p[0] = [p[1]]
 
-def p_function_arguments_more_recurse(p):
-    'function_arguments_more : function_arguments_more "," ID'
+def p_function_call_arguments_recurse(p):
+    'function_call_arguments : function_call_arguments "," expression'
     p[0] = p[1] + [p[3]]
 
+def p_function_call_arguments_opt_none(p):
+    'function_call_arguments_opt : '
+    p[0] = []
+
+def p_function_call_arguments_opt(p):
+    'function_call_arguments_opt : function_call_arguments'
+    p[0] = p[1]
+
+def p_function_call(p):
+    'function_call : expression "(" function_call_arguments_opt ")"'
+    # TODO: fix precedence of this
+    p[0] = FunctionCall(p[1], p[3])
+
+def p_expression_function_call(p):
+    'expression : function_call %prec FUNCTION_CALL'
+    p[0] = p[1]
+
+def p_function_arguments_id(p):
+    'function_arguments : ID'
+    p[0] = [p[1]]
+
+def p_function_arguments_recurse(p):
+    'function_arguments : function_arguments "," ID'
+    print('function arguments p=%r' % p)
+    p[0] = p[1] + [p[3]]
+
+def p_function_arguments_opt_none(p):
+    'function_arguments_opt : '
+    p[0] = []
+
+def p_function_arguments_opt(p):
+    'function_arguments_opt : function_arguments'
+    p[0] = p[1]
+
 def p_expression_function(p):
-    'expression : "(" function_arguments ")" ARROW expression'
+    'expression : "(" function_arguments_opt ")" ARROW expression'
     p[0] = Function(p[2], p[5])
 
 
@@ -297,10 +316,10 @@ yacc.yacc(start='expression')
 tree = yacc.parse('''
 {
     let a=x+1;
-    let b= (i, j) => {
-        return 10;
+    let b= (i,j) => {
+        return i+j;
     };
-    return 1+2+a+x+(b());
+    return 1+2+a+x+(b(10, 20));
 }
 ''')
 print('tree: %r' % tree)
