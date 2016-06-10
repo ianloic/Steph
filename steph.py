@@ -1,18 +1,16 @@
-
+import sys
 
 from parser import yacc
 
 import type as t
 
-tree = yacc.parse('''
-{
-    let a=x+1;
-    let b= (i:Number,j:Number) => {
-        return i+j;
-    };
-    return 1+2+a+x+(b(10, 20));
-}
-''')
+if len(sys.argv) == 2:
+    tree = yacc.parse(open(sys.argv[1]).read())
+elif len(sys.argv) == 1:
+    tree = yacc.parse(sys.stdin.read())
+else:
+    raise Exception('Expected zero or one arguments')
+
 print('tree: %r' % tree)
 print('names: %r' % tree.names())
 print('type: %r' % tree.type({'x': t.NUMBER}))
