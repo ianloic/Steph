@@ -1,5 +1,5 @@
-from plylexer import tokens
-from tree import *
+from lexer import tokens
+from ast import *
 from type import named as type_named
 import ply.yacc as yacc
 

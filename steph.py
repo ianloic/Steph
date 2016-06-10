@@ -1,6 +1,6 @@
 
 
-from plyparser import yacc
+from parser import yacc
 
 import type as t
 

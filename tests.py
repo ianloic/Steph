@@ -1,14 +1,14 @@
 import unittest
 
-from plyparser import yacc
-import tree
+from parser import yacc
+import ast
 import type
 
 
 class NumberTests(unittest.TestCase):
     def test_decimal(self):
         p = yacc.parse('  42 ')
-        self.assertIsInstance(p, tree.NumberLiteral)
+        self.assertIsInstance(p, ast.NumberLiteral)
 
         t = p.type({})
         self.assertEqual(t, type.NUMBER)
@@ -23,7 +23,7 @@ class NumberTests(unittest.TestCase):
 class BinOpTests(unittest.TestCase):
     def test_number_addition(self):
         p = yacc.parse('23 + 19')
-        self.assertIsInstance(p, tree.BinOp)
+        self.assertIsInstance(p, ast.BinOp)
         self.assertEqual(p.op, '+')
 
         t = p.type({})
@@ -39,9 +39,9 @@ class BinOpTests(unittest.TestCase):
 class FunctionTests(unittest.TestCase):
     def test_function_no_args_no_names(self):
         p = yacc.parse('() => 42')
-        self.assertIsInstance(p, tree.Function)
+        self.assertIsInstance(p, ast.Function)
         self.assertEqual(p.arguments, [])
-        self.assertIsInstance(p.expression, tree.NumberLiteral)
+        self.assertIsInstance(p.expression, ast.NumberLiteral)
 
         t = p.type({})
         self.assertEqual(t, type.Function([], type.NUMBER))
@@ -50,7 +50,7 @@ class FunctionTests(unittest.TestCase):
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertIsInstance(v, tree.BoundFunction)
+        self.assertIsInstance(v, ast.BoundFunction)
         # TODO: make sure more stuff
 
 
@@ -59,9 +59,9 @@ class FunctionCallTests(unittest.TestCase):
         func = yacc.parse('() => 42')
 
         p = yacc.parse('func()')
-        self.assertIsInstance(p, tree.FunctionCall)
+        self.assertIsInstance(p, ast.FunctionCall)
         self.assertEqual(p.arguments, [])
-        self.assertIsInstance(p.function_expression, tree.Reference)
+        self.assertIsInstance(p.function_expression, ast.Reference)
         self.assertEqual(p.function_expression.name, 'func')
 
         t = p.type({'func': func.type({})})
