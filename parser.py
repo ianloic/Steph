@@ -134,6 +134,11 @@ def p_expression_block(p):
     p[0] = Block(p[2], p[4])
 
 
+def p_expression_if_else(p):
+    "expression : IF '(' expression ')' expression ELSE expression"
+    p[0] = IfElse(p[3], p[5], p[7])
+
+
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)

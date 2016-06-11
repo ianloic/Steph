@@ -1,7 +1,7 @@
 import ply.lex as lex
 
 keywords = (
-    'LET', 'RETURN'
+    'LET', 'RETURN', 'IF', 'ELSE'
 )
 
 tokens = (

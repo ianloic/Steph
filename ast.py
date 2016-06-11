@@ -183,3 +183,10 @@ class FunctionCall(Expression):
 
     def __repr__(self):
         return 'FunctionCall<%r, %r>' % (self.arguments, self.function_expression)
+
+
+class IfElse(Expression):
+    def __init__(self, condition, true, false):
+        self.condition = condition
+        self.true = true
+        self.false = false
