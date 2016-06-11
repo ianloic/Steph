@@ -51,7 +51,20 @@ class FunctionTests(unittest.TestCase):
 
         v = p.evaluate({})
         self.assertIsInstance(v, ast.BoundFunction)
-        # TODO: make sure more stuff
+
+    def test_function_one_arg_no_names(self):
+        p = yacc.parse('(x:Number) => x*x')
+        self.assertIsInstance(p, ast.Function)
+        self.assertEqual(p.arguments, [('x', type.NUMBER)])
+
+        t = p.type({})
+        self.assertEqual(t, type.Function([type.NUMBER], type.NUMBER))
+
+        n = p.names()
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertIsInstance(v, ast.BoundFunction)
 
 
 class FunctionCallTests(unittest.TestCase):
@@ -74,6 +87,38 @@ class FunctionCallTests(unittest.TestCase):
         self.assertEqual(v, 42)
 
 
+class BlockTests(unittest.TestCase):
+    def test_let(self):
+        p = yacc.parse('{ let foo = 32; return foo + 10; }')
+        self.assertIsInstance(p, ast.Block)
+
+        t = p.type({})
+        self.assertEqual(t, type.NUMBER)
+
+        n = p.names()
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertEqual(v, 42)
+
+    def test_let_function(self):
+        p = yacc.parse('''{
+            let foo = 32;
+            let bar = (n:Number) => n+10;
+            return foo + (bar(12)) + 10;
+        }''')
+        self.assertIsInstance(p, ast.Block)
+
+        t = p.type({})
+        self.assertEqual(t, type.NUMBER)
+
+        n = p.names()
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertEqual(v, 64)
+
+
 class EndToEnd(unittest.TestCase):
     def test_simple_program(self):
         tree = yacc.parse('''
@@ -87,7 +132,7 @@ class EndToEnd(unittest.TestCase):
         ''')
         print('tree: %r' % tree)
         print('names: %r' % tree.names())
-        print('type: %r' % tree.type({'x': t.NUMBER}))
+        print('type: %r' % tree.type({'x': type.NUMBER}))
         print('value: %r' % tree.evaluate({'x': 42}))
 
 

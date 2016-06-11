@@ -100,7 +100,7 @@ def p_expression_function_call(p):
     p[0] = p[1]
 
 def p_function_argument(p):
-    'function_argument : ID type_spec_opt'
+    'function_argument : ID type_spec'
     p[0] = (p[1], p[2])
 
 def p_function_arguments_id(p):

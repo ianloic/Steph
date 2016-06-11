@@ -16,6 +16,9 @@ class Expression:
     def __add__(self, other):
         return BinOp(self, '+', other)
 
+    def __mul__(self, other):
+        return BinOp(self, '*', other)
+
 
 class Literal(Expression):
     def __init__(self, value):
@@ -48,6 +51,8 @@ class BinOp(Expression):
     def evaluate(self, scope):
         if self.op == '+':
             return self.lhs.evaluate(scope) + self.rhs.evaluate(scope)
+        elif self.op == '*':
+            return self.lhs.evaluate(scope) * self.rhs.evaluate(scope)
         else:
             raise NotImplemented()
 
@@ -113,14 +118,8 @@ class Block(Expression):
         return names | (self.expression.names() - set(self.lets.keys()))
 
     def type(self, scope):
-        inner_scope = {}
-        for name in self.expression.names():
-            if name in self.lets:
-                inner_scope[name] = self.lets[name].expression.type(scope)
-            elif name in scope:
-                inner_scope[name] = scope[name]
-            else:
-                raise Exception("Can't find type for name %r" % name)
+        inner_scope = dict(scope)
+        inner_scope.update({let.name:let.expression.type(scope) for let in self.lets.values()})
         return self.expression.type(inner_scope)
 
     def __repr__(self):
@@ -136,8 +135,9 @@ class Function(Expression):
         return BoundFunction(self, scope)
 
     def type(self, scope):
-        # TODO: do we need to fiddle the scope here?
-        return T.Function([arg[1] for arg in self.arguments], self.expression.type(scope))
+        inner_scope = dict(scope)
+        inner_scope.update({arg[0]:arg[1] for arg in self.arguments})
+        return T.Function([arg[1] for arg in self.arguments], self.expression.type(inner_scope))
 
     def names(self):
         return self.expression.names() - set(arg[0] for arg in self.arguments)
@@ -163,10 +163,11 @@ class FunctionCall(Expression):
 
         function = bound_function.function
 
+        argument_names = [argument[0] for argument in function.arguments]
         argument_values = [argument.evaluate(scope) for argument in self.arguments]
 
         new_scope = dict(bound_function.closure)
-        new_scope.update(dict(zip(function.arguments, argument_values)))
+        new_scope.update(dict(zip(argument_names, argument_values)))
         return function.expression.evaluate(new_scope)
 
     def type(self, scope):
