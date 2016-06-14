@@ -13,7 +13,7 @@ class NumberTests(unittest.TestCase):
         t = p.type({})
         self.assertEqual(t, type.NUMBER)
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -29,7 +29,7 @@ class BinOpTests(unittest.TestCase):
         t = p.type({})
         self.assertEqual(t, type.NUMBER)
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -46,7 +46,7 @@ class FunctionTests(unittest.TestCase):
         t = p.type({})
         self.assertEqual(t, type.Function([], type.NUMBER))
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -60,7 +60,7 @@ class FunctionTests(unittest.TestCase):
         t = p.type({})
         self.assertEqual(t, type.Function([type.NUMBER], type.NUMBER))
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -80,7 +80,7 @@ class FunctionCallTests(unittest.TestCase):
         t = p.type({'func': func.type({})})
         self.assertEqual(t, type.NUMBER)
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({'func': func.evaluate({})})
@@ -95,7 +95,7 @@ class BlockTests(unittest.TestCase):
         t = p.type({})
         self.assertEqual(t, type.NUMBER)
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -106,13 +106,13 @@ class BlockTests(unittest.TestCase):
             let foo = 32;
             let bar = (n:Number) => n+10;
             return foo + (bar(12)) + 10;
-        }''')
+        }''', tracking=True)
         self.assertIsInstance(p, ast.Block)
 
         t = p.type({})
         self.assertEqual(t, type.NUMBER)
 
-        n = p.names()
+        n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
@@ -120,11 +120,47 @@ class BlockTests(unittest.TestCase):
 
 
 class ComparisonTest(unittest.TestCase):
-    def test_lt(self):
+    def test_lt_true(self):
         p = yacc.parse('1 < 2')
+        self.assertIsInstance(p, ast.Comparison)
+
+
+        t = p.type({})
+        self.assertEqual(t, type.BOOLEAN)
+
+        n = p.names
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertTrue(v)
+
+    def test_lt_false(self):
+        p = yacc.parse('2 < 1')
+        self.assertIsInstance(p, ast.Comparison)
+
+        t = p.type({})
+        self.assertEqual(t, type.BOOLEAN)
+
+        n = p.names
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertFalse(v)
+
 
 class IfElseTest(unittest.TestCase):
-    pass
+    def test_simple_if_else(self):
+        p = yacc.parse('if (1==1) 23 else 42')
+        self.assertIsInstance(p, ast.IfElse)
+
+        t = p.type({})
+        self.assertEqual(t, type.NUMBER)
+
+        n = p.names
+        self.assertEqual(n, frozenset())
+
+        v = p.evaluate({})
+        self.assertEqual(v, 23)
 
 
 class EndToEnd(unittest.TestCase):
@@ -139,7 +175,7 @@ class EndToEnd(unittest.TestCase):
         }
         ''')
         print('tree: %r' % tree)
-        print('names: %r' % tree.names())
+        print('names: %r' % tree.names)
         print('type: %r' % tree.type({'x': type.NUMBER}))
         print('value: %r' % tree.evaluate({'x': 42}))
 

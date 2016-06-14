@@ -30,7 +30,7 @@ def p_type_spec_opt_type_spec(p):
     'type_spec_opt : type_spec'
     p[0] = p[1]
 
-def p_let(p):
+def p_let(p: yacc.YaccProduction):
     'let : LET ID "=" expression ";"'
     p[0] = Let(p[2], p[4])
 
@@ -50,14 +50,7 @@ def p_expression_binop(p):
                   | expression '-' expression
                   | expression '*' expression
                   | expression '/' expression'''
-    if p[2] == '+':
-        p[0] = p[1] + p[3]
-    elif p[2] == '-':
-        p[0] = p[1] - p[3]
-    elif p[2] == '*':
-        p[0] = p[1] * p[3]
-    elif p[2] == '/':
-        p[0] = p[1] / p[3]
+    p[0] = BinOp(p[1], p[2], p[3])
 
 
 def p_expression_uminus(p):
@@ -150,6 +143,7 @@ def p_expression_if_else(p):
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)
+        print(repr(p))
     else:
         print("Syntax error at EOF")
 

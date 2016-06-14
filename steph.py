@@ -12,6 +12,6 @@ else:
     raise Exception('Expected zero or one arguments')
 
 print('tree: %r' % tree)
-print('names: %r' % tree.names())
+print('names: %r' % tree.names)
 print('type: %r' % tree.type({'x': t.NUMBER}))
 print('value: %r' % tree.evaluate({'x': 42}))
