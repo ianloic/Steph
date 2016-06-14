@@ -7,7 +7,8 @@ keywords = (
 tokens = (
              'ID', 'NUMBER',
              'LBRACE', 'RBRACE',
-             'ARROW'
+             'ARROW',
+    'LT', 'GT', 'LE', 'GE', 'EQ'
          ) + keywords
 
 keyword_tokens = dict((kw.lower(), kw) for kw in keywords)
@@ -19,6 +20,12 @@ literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':']
 t_LBRACE = r'{'
 t_RBRACE = r'}'
 t_ARROW = r'=>'
+
+t_LT = r'<'
+t_GT = r'>'
+t_LE = r'<='
+t_GE = r'>='
+t_EQ = r'=='
 
 
 def t_ID(t):

@@ -42,6 +42,17 @@ class NumberLiteral(Literal):
         return 'Number<%d>' % self.value
 
 
+class BooleanLiteral(Literal):
+    def __init__(self, value: bool):
+        super().__init__(value)
+
+    def type(self, scope):
+        return T.BOOLEAN
+
+    def __repr__(self):
+        return 'Boolean<%d>' % self.value
+
+
 class BinOp(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         self.lhs = lhs
@@ -107,7 +118,7 @@ class Block(Expression):
 
     def evaluate(self, scope):
         new_scope = dict(scope)
-        new_scope.update({let.name:let.expression.evaluate(scope) for let in self.lets.values()})
+        new_scope.update({let.name: let.expression.evaluate(scope) for let in self.lets.values()})
         return self.expression.evaluate(new_scope)
 
     def names(self):
@@ -119,7 +130,7 @@ class Block(Expression):
 
     def type(self, scope):
         inner_scope = dict(scope)
-        inner_scope.update({let.name:let.expression.type(scope) for let in self.lets.values()})
+        inner_scope.update({let.name: let.expression.type(scope) for let in self.lets.values()})
         return self.expression.type(inner_scope)
 
     def __repr__(self):
@@ -136,7 +147,7 @@ class Function(Expression):
 
     def type(self, scope):
         inner_scope = dict(scope)
-        inner_scope.update({arg[0]:arg[1] for arg in self.arguments})
+        inner_scope.update({arg[0]: arg[1] for arg in self.arguments})
         return T.Function([arg[1] for arg in self.arguments], self.expression.type(inner_scope))
 
     def names(self):
@@ -185,8 +196,33 @@ class FunctionCall(Expression):
         return 'FunctionCall<%r, %r>' % (self.arguments, self.function_expression)
 
 
+class Comparison(Expression):
+    def __init__(self, lhs: Expression, op: str, rhs: Expression):
+        self.lhs = lhs
+        self.op = op
+        self.rhs = rhs
+
+    def names(self):
+        return self.lhs.names() | self.rhs.names()
+
+    def type(self, scope):
+        lhs = self.lhs.type(scope)
+        rhs = self.rhs.type(scope)
+        if lhs != rhs:
+            raise Exception("Types don't match for comparison: %s %s" % (lhs, rhs))
+        return T.BOOLEAN
+
+    def evaluate(self, scope):
+        lhs = self.lhs.evaluate(scope)
+        rhs = self.rhs.evaluate(scope)
+        if self.op == '<':
+            return BooleanLiteral(lhs < rhs)
+        elif self.op == '>':
+            return BooleanLiteral(lhs > rhs)
+
+
 class IfElse(Expression):
-    def __init__(self, condition, true, false):
+    def __init__(self, condition: Expression, true: Expression, false: Expression):
         self.condition = condition
         self.true = true
         self.false = false

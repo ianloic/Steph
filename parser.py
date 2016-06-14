@@ -64,6 +64,14 @@ def p_expression_uminus(p):
     "expression : '-' expression %prec UMINUS"
     p[0] = -p[2]
 
+def p_expression_comparison(p):
+    '''expression : expression LT expression
+                  | expression GT expression
+                  | expression LE expression
+                  | expression GE expression
+                  | expression EQ expression'''
+    p[0] = Comparison(p[1], p[2], p[3])
+
 
 def p_expression_group(p):
     "expression : '(' expression ')'"

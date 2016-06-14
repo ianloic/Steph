@@ -119,6 +119,14 @@ class BlockTests(unittest.TestCase):
         self.assertEqual(v, 64)
 
 
+class ComparisonTest(unittest.TestCase):
+    def test_lt(self):
+        p = yacc.parse('1 < 2')
+
+class IfElseTest(unittest.TestCase):
+    pass
+
+
 class EndToEnd(unittest.TestCase):
     def test_simple_program(self):
         tree = yacc.parse('''
@@ -134,6 +142,7 @@ class EndToEnd(unittest.TestCase):
         print('names: %r' % tree.names())
         print('type: %r' % tree.type({'x': type.NUMBER}))
         print('value: %r' % tree.evaluate({'x': 42}))
+
 
 
 if __name__ == '__main__':
