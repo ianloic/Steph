@@ -1,6 +1,6 @@
 from lexer import tokens
 from ast import *
-from type import named as type_named
+import type
 import ply.yacc as yacc
 
 
@@ -13,10 +13,29 @@ precedence = (
     ('right', 'FUNCTION_CALL'),
 )
 
+def p_type_list_type(p):
+    'type_list : type'
+    p[0] = [p[1]]
 
-def p_type(p):
+def p_type_list_recurse(p):
+    'type_list : type_list "," type'
+    p[0] = p[1] + [p[3]]
+
+def p_type_list_opt_empty(p):
+    'type_list_opt :'
+    p[0] = []
+
+def p_type_list_opt_type_list(p):
+    'type_list_opt : type_list'
+    p[0] = p[1]
+
+def p_type_function(p):
+    'type : "(" type_list_opt ")" ARROW type'
+    p[0] = type.Function(p[2], p[5])
+
+def p_type_name(p):
     'type : ID'
-    p[0] = type_named(p[1])
+    p[0] = type.named(p[1])
 
 def p_type_spec(p):
     'type_spec : ":" type'
@@ -31,8 +50,8 @@ def p_type_spec_opt_type_spec(p):
     p[0] = p[1]
 
 def p_let(p: yacc.YaccProduction):
-    'let : LET ID "=" expression ";"'
-    p[0] = Let(p[2], p[4])
+    'let : LET ID type_spec_opt "=" expression ";"'
+    p[0] = Let(p[2], p[3], p[5])
 
 
 def p_lets_empty(p):

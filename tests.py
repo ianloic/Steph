@@ -41,7 +41,7 @@ class FunctionTests(unittest.TestCase):
         p = yacc.parse('() => 42')
         self.assertIsInstance(p, ast.Function)
         self.assertEqual(p.arguments, [])
-        self.assertIsInstance(p.expression, ast.NumberLiteral)
+        self.assertIsInstance(p.children[0], ast.NumberLiteral)
 
         t = p.type({})
         self.assertEqual(t, type.Function([], type.NUMBER))
@@ -73,15 +73,15 @@ class FunctionCallTests(unittest.TestCase):
 
         p = yacc.parse('func()')
         self.assertIsInstance(p, ast.FunctionCall)
-        self.assertEqual(p.arguments, [])
-        self.assertIsInstance(p.function_expression, ast.Reference)
-        self.assertEqual(p.function_expression.name, 'func')
+        self.assertEqual(p._arguments, [])
+        self.assertIsInstance(p._function_expression, ast.Reference)
+        self.assertEqual(p._function_expression.name, 'func')
 
         t = p.type({'func': func.type({})})
         self.assertEqual(t, type.NUMBER)
 
         n = p.names
-        self.assertEqual(n, frozenset())
+        self.assertEqual(n, frozenset(['func']))
 
         v = p.evaluate({'func': func.evaluate({})})
         self.assertEqual(v, 42)
@@ -117,6 +117,14 @@ class BlockTests(unittest.TestCase):
 
         v = p.evaluate({})
         self.assertEqual(v, 64)
+
+
+    def test_let_recursive_function(self):
+        p = yacc.parse('''{
+            let func = () => func;
+            return 0;
+        }''')
+        #p.print()
 
 
 class ComparisonTest(unittest.TestCase):
@@ -178,6 +186,20 @@ class EndToEnd(unittest.TestCase):
         print('names: %r' % tree.names)
         print('type: %r' % tree.type({'x': type.NUMBER}))
         print('value: %r' % tree.evaluate({'x': 42}))
+
+    def test_recursive(self):
+        tree = yacc.parse('''
+        {
+          let fac : (Number)=>Number = (n : Number) =>
+            if (n == 1)
+              1
+            else
+              n * (fac(n-1));
+          return fac(10);
+        }
+        ''')
+        result = tree.evaluate({})
+        self.assertEqual(result, 3628800)
 
 
 
