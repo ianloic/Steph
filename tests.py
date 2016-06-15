@@ -2,7 +2,7 @@ import unittest
 
 from parser import yacc
 import ast
-import type
+import typesystem
 
 
 class NumberTests(unittest.TestCase):
@@ -11,7 +11,7 @@ class NumberTests(unittest.TestCase):
         self.assertIsInstance(p, ast.NumberLiteral)
 
         t = p.type({})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -27,7 +27,7 @@ class BinOpTests(unittest.TestCase):
         self.assertEqual(p.op, '+')
 
         t = p.type({})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -44,7 +44,7 @@ class FunctionTests(unittest.TestCase):
         self.assertIsInstance(p.children[0], ast.NumberLiteral)
 
         t = p.type({})
-        self.assertEqual(t, type.Function([], type.NUMBER))
+        self.assertEqual(t, typesystem.Function([], typesystem.NUMBER))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -55,10 +55,10 @@ class FunctionTests(unittest.TestCase):
     def test_function_one_arg_no_names(self):
         p = yacc.parse('(x:Number) => x*x')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.arguments, [('x', type.NUMBER)])
+        self.assertEqual(p.arguments, [('x', typesystem.NUMBER)])
 
         t = p.type({})
-        self.assertEqual(t, type.Function([type.NUMBER], type.NUMBER))
+        self.assertEqual(t, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -78,7 +78,7 @@ class FunctionCallTests(unittest.TestCase):
         self.assertEqual(p._function_expression.name, 'func')
 
         t = p.type({'func': func.type({})})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
@@ -93,7 +93,7 @@ class BlockTests(unittest.TestCase):
         self.assertIsInstance(p, ast.Block)
 
         t = p.type({})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -110,7 +110,7 @@ class BlockTests(unittest.TestCase):
         self.assertIsInstance(p, ast.Block)
 
         t = p.type({})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -118,13 +118,12 @@ class BlockTests(unittest.TestCase):
         v = p.evaluate({})
         self.assertEqual(v, 64)
 
-
     def test_let_recursive_function(self):
         p = yacc.parse('''{
             let func = () => func;
             return 0;
         }''')
-        #p.print()
+        # p.print()
 
 
 class ComparisonTest(unittest.TestCase):
@@ -132,9 +131,8 @@ class ComparisonTest(unittest.TestCase):
         p = yacc.parse('1 < 2')
         self.assertIsInstance(p, ast.Comparison)
 
-
         t = p.type({})
-        self.assertEqual(t, type.BOOLEAN)
+        self.assertEqual(t, typesystem.BOOLEAN)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -147,7 +145,7 @@ class ComparisonTest(unittest.TestCase):
         self.assertIsInstance(p, ast.Comparison)
 
         t = p.type({})
-        self.assertEqual(t, type.BOOLEAN)
+        self.assertEqual(t, typesystem.BOOLEAN)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -162,7 +160,7 @@ class IfElseTest(unittest.TestCase):
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.type({})
-        self.assertEqual(t, type.NUMBER)
+        self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -184,7 +182,7 @@ class EndToEnd(unittest.TestCase):
         ''')
         print('tree: %r' % tree)
         print('names: %r' % tree.names)
-        print('type: %r' % tree.type({'x': type.NUMBER}))
+        print('type: %r' % tree.type({'x': typesystem.NUMBER}))
         print('value: %r' % tree.evaluate({'x': 42}))
 
     def test_recursive(self):
@@ -200,7 +198,6 @@ class EndToEnd(unittest.TestCase):
         ''')
         result = tree.evaluate({})
         self.assertEqual(result, 3628800)
-
 
 
 if __name__ == '__main__':

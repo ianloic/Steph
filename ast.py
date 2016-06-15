@@ -1,6 +1,6 @@
 from typing import List, Tuple, Iterable, Dict, Sequence
 
-import type as T
+import typesystem
 
 
 def union(sets: Iterable[frozenset]) -> set:
@@ -11,7 +11,7 @@ def union(sets: Iterable[frozenset]) -> set:
 
 
 class Expression:
-    def __init__(self, names: Iterable[str], children:Sequence):
+    def __init__(self, names: Iterable[str], children: Sequence):
         """
 
         :type children: [Expression]
@@ -31,7 +31,7 @@ class Expression:
         """
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)
 
-    def type(self, scope: Dict[str, T.Type]) -> T.Type:
+    def type(self, scope: Dict[str, typesystem.Type]) -> typesystem.Type:
         raise Exception('type() not implemented in %s' % self.__class__.__name__)
 
     def print(self, indent='', parents=None):
@@ -60,7 +60,7 @@ class NumberLiteral(Literal, int):
         super().__init__(value)
 
     def type(self, scope):
-        return T.NUMBER
+        return typesystem.NUMBER
 
     def __repr__(self):
         return 'Number<%d>' % self.value
@@ -71,7 +71,7 @@ class BooleanLiteral(Literal):
         super().__init__(value)
 
     def type(self, scope):
-        return T.BOOLEAN
+        return typesystem.BOOLEAN
 
     def __repr__(self):
         return 'Boolean<%d>' % self.value
@@ -82,7 +82,7 @@ class BooleanLiteral(Literal):
 
 class BinOp(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
-        super().__init__(lhs.names|rhs.names, [lhs, rhs])
+        super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
 
     def evaluate(self, scope):
@@ -125,7 +125,7 @@ class Reference(Expression):
 
 
 class Let(Expression):
-    def __init__(self, name: str, specified_type: T.Type, expression: Expression):
+    def __init__(self, name: str, specified_type: typesystem.Type, expression: Expression):
         super().__init__(expression.names - {name}, [expression])
         self.name = name
         self.specified_type = specified_type
@@ -197,11 +197,11 @@ class Block(Expression):
         return self._expression.type(inner_scope)
 
     def __repr__(self):
-        return 'Block<%r>' % (self._lets)
+        return 'Block<%r>' % self._lets
 
 
 class Function(Expression):
-    def __init__(self, arguments: List[Tuple[str, T.Type]], expression: Expression):
+    def __init__(self, arguments: List[Tuple[str, typesystem.Type]], expression: Expression):
         super().__init__(expression.names - {arg[0] for arg in arguments}, [expression])
         self.arguments = arguments
 
@@ -211,7 +211,7 @@ class Function(Expression):
     def type(self, scope):
         inner_scope = dict(scope)
         inner_scope.update({arg[0]: arg[1] for arg in self.arguments})
-        return T.Function([arg[1] for arg in self.arguments], self.children[0].type(inner_scope))
+        return typesystem.Function([arg[1] for arg in self.arguments], self.children[0].type(inner_scope))
 
     def call(self, scope):
         return self.children[0].evaluate(scope)
@@ -222,7 +222,7 @@ class Function(Expression):
 
 class BoundFunction(Expression):
     def __init__(self, function: Function, scope: dict):
-        super().__init__((), [function]) # TODO: what are the names of a bound function?
+        super().__init__((), [function])
         self.closure = {name: scope[name] for name in function.names}
 
     def function(self):
@@ -258,7 +258,7 @@ class FunctionCall(Expression):
 
     def type(self, scope):
         function_type = self._function_expression.type(scope)
-        assert isinstance(function_type, T.Function)
+        assert isinstance(function_type, typesystem.Function)
         return function_type.returns
 
     def __repr__(self):
@@ -274,7 +274,7 @@ class Comparison(Expression):
         lhs, rhs = [c.type(scope) for c in self.children]
         if lhs != rhs:
             raise Exception("Types don't match for comparison: %s %s" % (lhs, rhs))
-        return T.BOOLEAN
+        return typesystem.BOOLEAN
 
     def evaluate(self, scope):
         lhs, rhs = [c.evaluate(scope) for c in self.children]
@@ -312,7 +312,7 @@ class IfElse(Expression):
         return self.children[2]
 
     def type(self, scope):
-        assert self._condition.type(scope) == T.BOOLEAN
+        assert self._condition.type(scope) == typesystem.BOOLEAN
         true = self._true.type(scope)
         false = self._false.type(scope)
         assert true == false

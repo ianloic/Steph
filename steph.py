@@ -2,7 +2,7 @@ import sys
 
 from parser import yacc
 
-import type as t
+import typesystem
 
 if len(sys.argv) == 2:
     tree = yacc.parse(open(sys.argv[1]).read())
@@ -13,5 +13,5 @@ else:
 
 print('tree: %r' % tree)
 print('names: %r' % tree.names)
-print('type: %r' % tree.type({'x': t.NUMBER}))
+print('type: %r' % tree.type({'x': typesystem.NUMBER}))
 print('value: %r' % tree.evaluate({'x': 42}))

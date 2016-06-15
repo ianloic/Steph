@@ -1,7 +1,8 @@
-'''A simple type-system for Steph.'''
-from typing import List
+"""A simple type-system for Steph."""
 
-__all__ = ['named', 'Type', 'UNKNOWN', 'NUMBER', 'STRING', 'BOOLEAN', 'Function', 'Array']
+
+import typing
+__all__ = ['named', 'Type', 'UNKNOWN', 'NUMBER', 'STRING', 'BOOLEAN', 'Function', 'List']
 
 
 class Type:
@@ -35,7 +36,7 @@ BOOLEAN = Primitive('boolean')
 
 
 class Function(Type):
-    def __init__(self, arguments: List[Type], returns: Type):
+    def __init__(self, arguments: typing.List[Type], returns: Type):
         self.arguments = arguments
         self.returns = returns
 
@@ -49,7 +50,7 @@ class Function(Type):
         return self.__class__ == other.__class__ and self.arguments == other.arguments and self.returns == other.returns
 
 
-class Array(Type):
+class List(Type):
     def __init__(self, item: Type):
         self.item = item
 
