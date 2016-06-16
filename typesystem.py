@@ -10,10 +10,19 @@ class Type:
 
 
 class Unknown(Type):
-    pass
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
 
 UNKNOWN = Unknown()
+
+
+class Nothing(Type):
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
+
+
+NOTHING = Nothing()
 
 
 class Primitive(Type):
@@ -55,10 +64,24 @@ class List(Type):
         self.item = item
 
     def __str__(self):
-        return '[%s]' % self.item
+        return 'List(%s)' % self.item
 
     def __repr__(self):
-        return '[%r]' % self.item
+        return 'List(%r)' % self.item
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and self.item == other.item
+
+
+class EmptyList(List):
+    def __init__(self):
+        super().__init__(NOTHING)
+
+    def __str__(self):
+        return 'EmptyList'
+
+    def __repr__(self):
+        return 'EmptyList()'
 
 
 def named(name):

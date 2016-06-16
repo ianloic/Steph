@@ -42,3 +42,4 @@ class BlockTests(unittest.TestCase):
             return 0;
         }''')
         # p.print()
+        self.assertIsInstance(p, ast.Block)

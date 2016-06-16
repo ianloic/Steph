@@ -1,9 +1,8 @@
-from typing import List, Tuple, Iterable, Dict, Sequence
-
+import typing
 import typesystem
 
 
-def union(sets: Iterable[frozenset]) -> set:
+def union(sets: typing.Iterable[frozenset]) -> set:
     u = set()
     for s in sets:
         u |= s
@@ -11,7 +10,7 @@ def union(sets: Iterable[frozenset]) -> set:
 
 
 class Expression:
-    def __init__(self, names: Iterable[str], children: Sequence):
+    def __init__(self, names: typing.Iterable[str], children: typing.Sequence):
         """
 
         :type children: [Expression]
@@ -31,7 +30,7 @@ class Expression:
         """
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)
 
-    def type(self, scope: Dict[str, typesystem.Type]) -> typesystem.Type:
+    def type(self, scope: typing.Dict[str, typesystem.Type]) -> typesystem.Type:
         raise Exception('type() not implemented in %s' % self.__class__.__name__)
 
     def print(self, indent='', parents=None):
@@ -78,6 +77,23 @@ class BooleanLiteral(Literal):
 
     def __bool__(self):
         return self.value
+
+
+class List(Expression):
+    def __init__(self, elements: typing.List[Expression]):
+        super().__init__(union(element.names for element in elements), elements)
+
+    def __repr__(self):
+        return 'List<length=%d>' % len(self.children)
+
+    def type(self, scope):
+        types = [child.type(scope) for child in self.children]
+        # TODO: find the union of the types
+        if len(types):
+            return typesystem.List(types[0])
+        else:
+            return typesystem.EmptyList()
+
 
 
 class BinOp(Expression):
@@ -170,7 +186,7 @@ class Let(Expression):
 
 
 class Block(Expression):
-    def __init__(self, lets: List[Let], expression: Expression):
+    def __init__(self, lets: typing.List[Let], expression: Expression):
         names = union(l.names for l in lets) | (expression.names - {l.name for l in lets})
         super().__init__(names, lets + [expression])
 
@@ -201,7 +217,7 @@ class Block(Expression):
 
 
 class Function(Expression):
-    def __init__(self, arguments: List[Tuple[str, typesystem.Type]], expression: Expression):
+    def __init__(self, arguments: typing.List[typing.Tuple[str, typesystem.Type]], expression: Expression):
         super().__init__(expression.names - {arg[0] for arg in arguments}, [expression])
         self.arguments = arguments
 
@@ -230,7 +246,7 @@ class BoundFunction(Expression):
 
 
 class FunctionCall(Expression):
-    def __init__(self, expression: Expression, arguments: List[Expression]):
+    def __init__(self, expression: Expression, arguments: typing.List[Expression]):
         super().__init__(union(arg.names for arg in arguments) | expression.names, [expression] + arguments)
 
     @property

@@ -1,11 +1,7 @@
-import unittest
-
-from parser import yacc
-import ast
-import typesystem
+from tests.base import *
 
 
-class NumberTests(unittest.TestCase):
+class NumberTests(StephTest):
     def test_decimal(self):
         p = yacc.parse('  42 ')
         self.assertIsInstance(p, ast.NumberLiteral)

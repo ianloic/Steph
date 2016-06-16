@@ -8,12 +8,13 @@ tokens = (
              'ID', 'NUMBER',
              'LBRACE', 'RBRACE',
              'ARROW',
-    'LT', 'GT', 'LE', 'GE', 'EQ'
+    'LT', 'GT', 'LE', 'GE', 'EQ',
+    'TYPENAME',
          ) + keywords
 
 keyword_tokens = dict((kw.lower(), kw) for kw in keywords)
 
-literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':']
+literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':', '[', ']']
 
 # Tokens
 
@@ -29,8 +30,13 @@ t_EQ = r'=='
 
 
 def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*'
+    r'[a-z][a-zA-Z_0-9]*'
     t.type = keyword_tokens.get(t.value, t.type)
+    return t
+
+
+def t_TYPENAME(t):
+    r'[A-Z][a-zA-Z_0-9]*'
     return t
 
 

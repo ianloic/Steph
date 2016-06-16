@@ -1,5 +1,6 @@
+import lexer
 from lexer import tokens
-from ast import *
+import ast
 import typesystem
 import ply.yacc as yacc
 
@@ -37,9 +38,17 @@ def p_type_function(p):
     """type : "(" type_list_opt ")" ARROW type"""
     p[0] = typesystem.Function(p[2], p[5])
 
+def p_type_with_parameter(p):
+    """type : TYPENAME '(' type ')'"""
+    typename = p[1]
+    parameter = p[3]
+    if typename == 'List':
+        p[0] = typesystem.List(parameter)
+    else:
+        raise Exception('Unknown type %s' % typename)
 
 def p_type_name(p):
-    """type : ID"""
+    """type : TYPENAME"""
     p[0] = typesystem.named(p[1])
 
 
@@ -60,7 +69,7 @@ def p_type_spec_opt_type_spec(p):
 
 def p_let(p: yacc.YaccProduction):
     """let : LET ID type_spec_opt "=" expression ";\""""
-    p[0] = Let(p[2], p[3], p[5])
+    p[0] = ast.Let(p[2], p[3], p[5])
 
 
 def p_lets_empty(p):
@@ -78,7 +87,7 @@ def p_expression_binop(p):
                   | expression '-' expression
                   | expression '*' expression
                   | expression '/' expression"""
-    p[0] = BinOp(p[1], p[2], p[3])
+    p[0] = ast.BinOp(p[1], p[2], p[3])
 
 
 def p_expression_uminus(p):
@@ -92,7 +101,7 @@ def p_expression_comparison(p):
                   | expression LE expression
                   | expression GE expression
                   | expression EQ expression"""
-    p[0] = Comparison(p[1], p[2], p[3])
+    p[0] = ast.Comparison(p[1], p[2], p[3])
 
 
 def p_expression_group(p):
@@ -102,7 +111,7 @@ def p_expression_group(p):
 
 def p_expression_number(p):
     """expression : NUMBER"""
-    p[0] = NumberLiteral(p[1])
+    p[0] = ast.NumberLiteral(p[1])
 
 
 def p_function_call_arguments_expression(p):
@@ -128,7 +137,7 @@ def p_function_call_arguments_opt(p):
 def p_function_call(p):
     """function_call : expression "(" function_call_arguments_opt ")\""""
     # TODO: fix precedence of this
-    p[0] = FunctionCall(p[1], p[3])
+    p[0] = ast.FunctionCall(p[1], p[3])
 
 
 def p_expression_function_call(p):
@@ -163,28 +172,49 @@ def p_function_arguments_opt(p):
 
 def p_expression_function(p):
     """expression : "(" function_arguments_opt ")" ARROW expression"""
-    p[0] = Function(p[2], p[5])
+    p[0] = ast.Function(p[2], p[5])
 
 
 def p_expression_name(p):
     """expression : ID"""
-    p[0] = Reference(p[1])
+    p[0] = ast.Reference(p[1])
 
 
 def p_expression_block(p):
     """expression : LBRACE lets RETURN expression ';' RBRACE"""
-    p[0] = Block(p[2], p[4])
+    p[0] = ast.Block(p[2], p[4])
 
 
 def p_expression_if_else(p):
     """expression : IF '(' expression ')' expression ELSE expression"""
-    p[0] = IfElse(p[3], p[5], p[7])
+    p[0] = ast.IfElse(p[3], p[5], p[7])
+
+
+def p_list_elements_expression(p):
+    """list_elements : expression"""
+    p[0] = [p[1]]
+
+
+def p_list_elements_recursive(p):
+    """list_elements : list_elements ',' expression"""
+    p[0] = p[1] + [p[3]]
+
+
+def p_expression_list_empty(p):
+    """expression : '[' ']'"""
+    p[0] = ast.List([])
+
+
+def p_expression_list(p):
+    """expression : '[' list_elements ']'"""
+    p[0] = ast.List(p[2])
 
 
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)
-        print(repr(p))
+        source = p.lexer.lexdata
+        print('%s\u2639%s' % (source[:p.lexpos], source[p.lexpos:]))
     else:
         print("Syntax error at EOF")
 
