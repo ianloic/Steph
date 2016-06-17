@@ -95,7 +95,6 @@ class List(Expression):
             return typesystem.EmptyList()
 
 
-
 class BinOp(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
@@ -188,11 +187,13 @@ class Let(Expression):
 class Block(Expression):
     def __init__(self, lets: typing.List[Let], expression: Expression):
         names = union(l.names for l in lets) | (expression.names - {l.name for l in lets})
+        # noinspection PyTypeChecker
         super().__init__(names, lets + [expression])
 
-        repeated = [let.name for let in lets if lets.count(let.name) > 1]
-        if repeated:
-            raise Exception('Repeated let name(s) %r' % repeated)
+        let_names = [let.name for let in lets]
+        for name in let_names:
+            if let_names.count(name) > 1:
+                raise Exception('Repeated let name %r: ' % name)
 
     @property
     def _lets(self):

@@ -28,7 +28,8 @@ class ListTests(StephTest):
         (l:List(Number)) => l
         ''')
         t = p.type({})
-        self.assertEqual(t, typesystem.Function([typesystem.List(typesystem.NUMBER)], typesystem.List(typesystem.NUMBER)))
+        number_list = typesystem.List(typesystem.NUMBER)
+        self.assertEqual(t, typesystem.Function([number_list], number_list))
 
     def test_wrap_function(self):
         p = yacc.parse('''

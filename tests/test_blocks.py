@@ -43,3 +43,11 @@ class BlockTests(unittest.TestCase):
         }''')
         # p.print()
         self.assertIsInstance(p, ast.Block)
+
+    def test_let_repetition(self):
+        source = '''{
+            let x = 1;
+            let x = 2;
+            return 0;
+        }'''
+        self.assertRaises(Exception, lambda: yacc.parse(source))
