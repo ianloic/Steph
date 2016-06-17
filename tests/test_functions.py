@@ -32,6 +32,16 @@ class FunctionTests(unittest.TestCase):
         v = p.evaluate({})
         self.assertIsInstance(v, ast.BoundFunction)
 
+    def test_function_call_precedence(self):
+        p = yacc.parse('''
+        {
+            let f = () => 1;
+            return 1 + f();
+        }
+        ''')
+        self.assertEqual(p.type({}), typesystem.NUMBER)
+        self.assertEqual(p.evaluate({}), 2)
+
 
 class FunctionCallTests(unittest.TestCase):
     def test_function_no_args_no_names(self):

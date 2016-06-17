@@ -9,9 +9,10 @@ from lexer import tokens  # need to have `tokens` in this module's scope for PLY
 
 precedence = (
     ('left', '+', '-'),
+    ('left', '+', '-'),
     ('left', '*', '/'),
     ('right', 'UMINUS'),
-    ('right', 'FUNCTION_CALL'),
+    ('right', '('),
 )
 
 
@@ -144,7 +145,7 @@ def p_function_call(p):
 
 
 def p_expression_function_call(p):
-    """expression : function_call %prec FUNCTION_CALL"""
+    """expression : function_call"""
     p[0] = p[1]
 
 

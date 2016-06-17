@@ -20,6 +20,10 @@ class BinOpTests(unittest.TestCase):
         v = p.evaluate({})
         self.assertEqual(v, 42)
 
+    def test_precedence(self):
+        self.assertEqual(yacc.parse('1 + 2 * 3 + 4').evaluate({}), 1 + 2 * 3 + 4)
+        self.assertEqual(yacc.parse('1 * 2 + 3 * 4').evaluate({}), 1 * 2 + 3 * 4)
+
 
 class ComparisonTest(unittest.TestCase):
     def test_lt_true(self):

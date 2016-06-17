@@ -13,7 +13,7 @@ class EndToEnd(unittest.TestCase):
             let b= (i:Number,j:Number) => {
                 return i+j;
             };
-            return 1+2+a+x+(b(10, 20));
+            return 1+2+a+x+b(10, 20);
         }
         ''')
         self.assertIsInstance(tree, ast.Block)
@@ -29,7 +29,7 @@ class EndToEnd(unittest.TestCase):
             if (n == 1)
               1
             else
-              n * (fac(n-1));
+              n * fac(n-1);
           return fac(10);
         }
         ''')
