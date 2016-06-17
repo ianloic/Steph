@@ -9,8 +9,6 @@ class FunctionTests(unittest.TestCase):
     def test_function_no_args_no_names(self):
         p = yacc.parse('() => 42')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.arguments, [])
-        self.assertIsInstance(p.children[0], ast.NumberLiteral)
 
         t = p.type({})
         self.assertEqual(t, typesystem.Function([], typesystem.NUMBER))
@@ -24,7 +22,6 @@ class FunctionTests(unittest.TestCase):
     def test_function_one_arg_no_names(self):
         p = yacc.parse('(x:Number) => x*x')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.arguments, [('x', typesystem.NUMBER)])
 
         t = p.type({})
         self.assertEqual(t, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
@@ -55,3 +52,19 @@ class FunctionCallTests(unittest.TestCase):
         v = p.evaluate({'func': func.evaluate({})})
         self.assertEqual(v, 42)
 
+    def test_function_one_arg_no_names(self):
+        func = yacc.parse('(n:Number) => n+10')
+        self.assertIsInstance(func, ast.Function)
+        self.assertEqual(func.type({}), typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
+
+        p = yacc.parse('func(10)')
+        self.assertIsInstance(p, ast.FunctionCall)
+
+        t = p.type({'func': func.type({})})
+        self.assertEqual(t, typesystem.NUMBER)
+
+        n = p.names
+        self.assertEqual(n, frozenset(['func']))
+
+        v = p.evaluate({'func': func.evaluate({})})
+        self.assertEqual(v, 20)

@@ -169,7 +169,7 @@ class Let(Expression):
                 if sub.name == self.name:
                     # This sub let hides this let - don't recurse
                     continue
-            elif isinstance(sub, Function):
+            elif isinstance(sub, FunctionPiece):
                 if {arg[0] for arg in sub.arguments}:
                     # A function argument hides this let - don't recurse
                     continue
@@ -216,24 +216,39 @@ class Block(Expression):
         return 'Block<%r>' % self._lets
 
 
-class Function(Expression):
+class FunctionPiece(Expression):
     def __init__(self, arguments: typing.List[typing.Tuple[str, typesystem.Type]], expression: Expression):
         super().__init__(expression.names - {arg[0] for arg in arguments}, [expression])
         self.arguments = arguments
-
-    def evaluate(self, scope):
-        return BoundFunction(self, scope)
 
     def type(self, scope):
         inner_scope = dict(scope)
         inner_scope.update({arg[0]: arg[1] for arg in self.arguments})
         return typesystem.Function([arg[1] for arg in self.arguments], self.children[0].type(inner_scope))
 
-    def call(self, scope):
-        return self.children[0].evaluate(scope)
+    def call(self, arguments, scope):
+        inner_scope = dict(scope)
+        inner_scope.update(dict(zip((arg[0] for arg in self.arguments), arguments)))
+        return self.children[0].evaluate(inner_scope)
 
     def __repr__(self):
         return 'Function<(%s)>' % (', '.join('%s:%r' % arg for arg in self.arguments))
+
+
+class Function(Expression):
+    def __init__(self, pieces: typing.List[FunctionPiece]):
+        super().__init__(union(piece.names for piece in pieces), pieces)
+
+    def evaluate(self, scope):
+        return BoundFunction(self, scope)
+
+    def call(self, arguments, scope):
+        assert len(self.children) == 1
+        return self.children[0].call(arguments, scope)
+
+    def type(self, scope):
+        assert len(self.children) == 1
+        return self.children[0].type(scope)
 
 
 class BoundFunction(Expression):
@@ -243,6 +258,13 @@ class BoundFunction(Expression):
 
     def function(self):
         return self.children[0]
+
+    def call(self, arguments, scope):
+        inner_scope = dict(self.closure)
+        inner_scope.update(scope)
+
+        assert isinstance(self.children[0], Function)
+        return self.children[0].call(arguments, inner_scope)
 
 
 class FunctionCall(Expression):
@@ -259,18 +281,9 @@ class FunctionCall(Expression):
 
     def evaluate(self, scope):
         bound_function = self._function_expression.evaluate(scope)
-
         assert isinstance(bound_function, BoundFunction)
-
-        function = bound_function.function()
-
-        argument_names = [argument[0] for argument in function.arguments]
-        argument_values = [argument.evaluate(scope) for argument in self._arguments]
-
-        new_scope = dict(bound_function.closure)
-        new_scope.update(dict(zip(argument_names, argument_values)))
-        value = function.call(new_scope)
-        return value
+        arguments = [argument.evaluate(scope) for argument in self._arguments]
+        return bound_function.call(arguments, scope)
 
     def type(self, scope):
         function_type = self._function_expression.type(scope)

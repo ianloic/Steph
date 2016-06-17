@@ -1,8 +1,9 @@
-import lexer
-from lexer import tokens
 import ast
 import typesystem
 import ply.yacc as yacc
+
+# noinspection PyUnresolvedReferences
+from lexer import tokens # need to have `tokens` in this module's scope for PLY to do its magic
 
 # Parsing rules
 
@@ -38,6 +39,7 @@ def p_type_function(p):
     """type : "(" type_list_opt ")" ARROW type"""
     p[0] = typesystem.Function(p[2], p[5])
 
+
 def p_type_with_parameter(p):
     """type : TYPENAME '(' type ')'"""
     typename = p[1]
@@ -46,6 +48,7 @@ def p_type_with_parameter(p):
         p[0] = typesystem.List(parameter)
     else:
         raise Exception('Unknown type %s' % typename)
+
 
 def p_type_name(p):
     """type : TYPENAME"""
@@ -170,9 +173,24 @@ def p_function_arguments_opt(p):
     p[0] = p[1]
 
 
-def p_expression_function(p):
-    """expression : "(" function_arguments_opt ")" ARROW expression"""
-    p[0] = ast.Function(p[2], p[5])
+def p_function_definition_piece(p):
+    """function_definition_piece : "(" function_arguments_opt ")" ARROW expression"""
+    p[0] = ast.FunctionPiece(p[2], p[5])
+
+
+def p_function_definition(p):
+    """function_definition : function_definition_piece"""
+    p[0] = [p[1]]
+
+
+def p_function_definition_recurse(p):
+    """function_definition : function_definition ',' function_definition_piece"""
+    p[0] = p[0] + [p[3]]
+
+
+def p_expression_function_definition(p):
+    """expression : function_definition"""
+    p[0] = ast.Function(p[1])
 
 
 def p_expression_name(p):
