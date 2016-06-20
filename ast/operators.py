@@ -2,10 +2,10 @@ import typesystem
 from ast.base import Expression
 from ast.literals import BooleanLiteral
 
-__all__ = ['BinOp', 'Comparison']
+__all__ = ['ArithmeticOperator', 'Comparison']
 
 
-class BinOp(Expression):
+class ArithmeticOperator(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
@@ -40,7 +40,7 @@ class BinOp(Expression):
         return lhs
 
     def __repr__(self):
-        return 'BinOp<%s>' % (self.op,)
+        return 'ArithmeticOperator<%s>' % (self.op,)
 
 
 class Comparison(Expression):

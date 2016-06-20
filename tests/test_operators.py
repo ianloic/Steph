@@ -5,10 +5,10 @@ import ast
 import typesystem
 
 
-class BinOpTests(unittest.TestCase):
+class ArithmeticTests(unittest.TestCase):
     def test_number_addition(self):
         p = yacc.parse('23 + 19')
-        self.assertIsInstance(p, ast.BinOp)
+        self.assertIsInstance(p, ast.ArithmeticOperator)
         self.assertEqual(p.op, '+')
 
         t = p.type({})

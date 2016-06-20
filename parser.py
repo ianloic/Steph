@@ -89,12 +89,12 @@ def p_lets_recurse(p):
     p[0] = p[1] + [p[2]]
 
 
-def p_expression_bin_op(p):
+def p_expression_arithmetic(p):
     """expression : expression '+' expression
                   | expression '-' expression
                   | expression '*' expression
                   | expression '/' expression"""
-    p[0] = ast.BinOp(p[1], p[2], p[3])
+    p[0] = ast.ArithmeticOperator(p[1], p[2], p[3])
 
 
 def p_expression_uminus(p):
