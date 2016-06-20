@@ -88,7 +88,7 @@ def p_lets_recurse(p):
     p[0] = p[1] + [p[2]]
 
 
-def p_expression_binop(p):
+def p_expression_bin_op(p):
     """expression : expression '+' expression
                   | expression '-' expression
                   | expression '*' expression
@@ -207,7 +207,7 @@ def p_expression_name(p):
 
 
 def p_expression_block(p):
-    """expression : LBRACE lets RETURN expression ';' RBRACE"""
+    """expression : '{' lets RETURN expression ';' '}'"""
     p[0] = ast.Block(p[2], p[4])
 
 

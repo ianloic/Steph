@@ -144,13 +144,13 @@ class Let(Expression):
         super().__init__(expression.names - {name}, [expression])
         self.name = name
         self.specified_type = specified_type
-        self._fixup(expression)
+        self._fix_up(expression)
 
     def __repr__(self):
         return 'Let<%s>' % (self.name,)
 
-    def _fixup(self, expression):
-        """Fix up references to this let in subexpressions to point here."""
+    def _fix_up(self, expression):
+        """Fix up references to this let in sub-expressions to point here."""
         # Remove this let's name from the expression's name list
         expression.names -= {self.name}
 
@@ -172,8 +172,8 @@ class Let(Expression):
                 if {arg.name for arg in sub.arguments}:
                     # A function argument hides this let - don't recurse
                     continue
-            # Recurse into the subexpression
-            self._fixup(sub)
+            # Recurse into the sub-expression
+            self._fix_up(sub)
 
     def evaluate(self, scope):
         return self.children[0].evaluate(scope)
@@ -250,7 +250,8 @@ class ComparisonPatternMatch(PatternMatch):
 
 class FunctionPiece(Expression):
     def __init__(self, arguments: typing.List[FunctionArgument], expression: Expression):
-        super().__init__(expression.names - {arg.name for arg in arguments if isinstance(arg, BasicFunctionArgument)}, [expression])
+        super().__init__(expression.names - {arg.name for arg in arguments if isinstance(arg, BasicFunctionArgument)},
+                         [expression])
         self.arguments = arguments
 
     def type(self, scope):

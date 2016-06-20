@@ -6,7 +6,6 @@ keywords = (
 
 tokens = (
              'ID', 'NUMBER',
-             'LBRACE', 'RBRACE',
              'ARROW',
              'LT', 'GT', 'LE', 'GE', 'EQ',
              'TYPENAME',
@@ -14,12 +13,10 @@ tokens = (
 
 keyword_tokens = dict((kw.lower(), kw) for kw in keywords)
 
-literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':', '[', ']']
+literals = ['=', '+', '-', '*', '/', '(', ')', ';', ',', ':', '[', ']', '{', '}']
 
 # Tokens
 
-t_LBRACE = r'{'
-t_RBRACE = r'}'
 t_ARROW = r'=>'
 
 t_LT = r'<'
@@ -29,17 +26,20 @@ t_GE = r'>='
 t_EQ = r'=='
 
 
+# noinspection PyPep8Naming
 def t_ID(t):
     r"""[a-z][a-zA-Z_0-9]*"""
     t.type = keyword_tokens.get(t.value, t.type)
     return t
 
 
+# noinspection PyPep8Naming
 def t_TYPENAME(t):
     r"""[A-Z][a-zA-Z_0-9]*"""
     return t
 
 
+# noinspection PyPep8Naming
 def t_NUMBER(t):
     r"""\d+"""
     t.value = int(t.value)

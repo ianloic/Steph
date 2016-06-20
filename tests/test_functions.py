@@ -90,3 +90,5 @@ class PatternMatchingTest(unittest.TestCase):
           return fac(10);
         }
         ''')
+        # result = p.evaluate({})
+        # self.assertEqual(result, 3628800)
