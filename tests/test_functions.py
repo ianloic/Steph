@@ -78,3 +78,15 @@ class FunctionCallTests(unittest.TestCase):
 
         v = p.evaluate({'func': func.evaluate({})})
         self.assertEqual(v, 20)
+
+
+class PatternMatchingTest(unittest.TestCase):
+    def test_factorial(self):
+        p = yacc.parse('''
+        {
+          let fac : (Number)=>Number =
+            (n == 1) => 1,
+            (n : Number) => n * fac(n-1);
+          return fac(10);
+        }
+        ''')

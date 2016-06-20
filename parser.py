@@ -1,3 +1,5 @@
+import os
+
 import ast
 import typesystem
 import ply.yacc as yacc
@@ -149,12 +151,17 @@ def p_expression_function_call(p):
     p[0] = p[1]
 
 
-def p_function_argument(p):
+def p_function_argument_id_type(p):
     """function_argument : ID type_spec"""
-    p[0] = (p[1], p[2])
+    p[0] = ast.BasicFunctionArgument(p[1], p[2])
 
 
-def p_function_arguments_id(p):
+def p_function_argument_expression(p):
+    """function_argument : ID EQ expression"""
+    p[0] = ast.ComparisonPatternMatch(p[1], p[1], p[2])
+
+
+def p_function_arguments_one(p):
     """function_arguments : function_argument"""
     p[0] = [p[1]]
 
@@ -186,7 +193,7 @@ def p_function_definition(p):
 
 def p_function_definition_recurse(p):
     """function_definition : function_definition ',' function_definition_piece"""
-    p[0] = p[0] + [p[3]]
+    p[0] = p[1] + [p[3]]
 
 
 def p_expression_function_definition(p):
@@ -237,5 +244,6 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
-
-yacc.yacc(start='expression')
+output_directory = os.path.join(os.path.dirname(__file__), 'generated')
+os.makedirs(output_directory, exist_ok=True)
+yacc.yacc(start='expression', outputdir=output_directory)
