@@ -9,28 +9,20 @@ def union(sets: typing.Iterable[frozenset]) -> set:
     return u
 
 
-class Expression:
-    def __init__(self, names: typing.Iterable[str], children: typing.Sequence):
-        """
+EvaluationScope = typing.Dict[str, 'Expression']
+TypeScope = typing.Dict[str, typesystem.Type]
 
-        :type children: [Expression]
-        :param names:
-        :param children:
-        """
+
+class Expression:
+    def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Expression']):
         self.names = frozenset(names)
         self.children = children
         assert isinstance(children, list)
 
-    def evaluate(self, scope):
-        """
-
-        :rtype: Expression
-        :param scope: {str:Expression}
-        :return:
-        """
+    def evaluate(self, scope: EvaluationScope) -> 'Expression':
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)
 
-    def type(self, scope: typing.Dict[str, typesystem.Type]) -> typesystem.Type:
+    def type(self, scope: TypeScope) -> typesystem.Type:
         raise Exception('type() not implemented in %s' % self.__class__.__name__)
 
     def print(self, indent='', parents=None):
@@ -218,11 +210,15 @@ class Block(Expression):
 
 
 class FunctionArgument:
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
-    def type(self, scope):
+    def type(self, scope: TypeScope) -> typesystem.Type:
         raise Exception('type() not implemented by %s' % self.__class__.__name__)
+
+    def matches(self, argument: Expression) -> bool:
+        # TODO: is the argument a Value not an expression?
+        raise Exception('matches() not implemented by %s' % self.__class__.__name__)
 
 
 class BasicFunctionArgument(FunctionArgument):
@@ -232,6 +228,13 @@ class BasicFunctionArgument(FunctionArgument):
 
     def type(self, scope):
         return self.specified_type
+
+    def matches(self, argument: Expression):
+        # TODO: check type? do we do that?
+        return True
+
+    def __repr__(self):
+        return '%s:%r' % (self.name, self.specified_type)
 
 
 class PatternMatch(FunctionArgument):
@@ -247,6 +250,10 @@ class ComparisonPatternMatch(PatternMatch):
     def type(self, scope):
         return self.expression.type(scope)
 
+    def matches(self, argument: Expression):
+        assert self.operator == '=='
+        return argument == self.expression
+
 
 class FunctionPiece(Expression):
     def __init__(self, arguments: typing.List[FunctionArgument], expression: Expression):
@@ -258,6 +265,9 @@ class FunctionPiece(Expression):
         inner_scope = dict(scope)
         inner_scope.update({arg.name: arg.type(scope) for arg in self.arguments})
         return typesystem.Function([arg.type(scope) for arg in self.arguments], self.children[0].type(inner_scope))
+
+    def matches(self, arguments) -> bool:
+        return all(x.matches(y) for x, y in zip(self.arguments, arguments))
 
     def call(self, arguments, scope):
         inner_scope = dict(scope)
@@ -272,12 +282,19 @@ class Function(Expression):
     def __init__(self, pieces: typing.List[FunctionPiece]):
         super().__init__(union(piece.names for piece in pieces), pieces)
 
+    @property
+    def pieces(self):
+        return self.children
+
     def evaluate(self, scope):
         return BoundFunction(self, scope)
 
     def call(self, arguments, scope):
-        assert len(self.children) == 1
-        return self.children[0].call(arguments, scope)
+        for piece in self.pieces:
+            if piece.matches(arguments):
+                return piece.call(arguments, scope)
+        raise Exception(
+            'No matching function implementation for arguments=%r scope=%r in %r' % (arguments, scope, self.pieces))
 
     def type(self, scope):
         assert len(self.children) == 1
@@ -289,15 +306,14 @@ class BoundFunction(Expression):
         super().__init__((), [function])
         self.closure = {name: scope[name] for name in function.names}
 
-    def function(self):
+    @property
+    def function(self) -> Function:
         return self.children[0]
 
     def call(self, arguments, scope):
         inner_scope = dict(self.closure)
         inner_scope.update(scope)
-
-        assert isinstance(self.children[0], Function)
-        return self.children[0].call(arguments, inner_scope)
+        return self.function.call(arguments, inner_scope)
 
 
 class FunctionCall(Expression):

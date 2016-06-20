@@ -158,7 +158,7 @@ def p_function_argument_id_type(p):
 
 def p_function_argument_expression(p):
     """function_argument : ID EQ expression"""
-    p[0] = ast.ComparisonPatternMatch(p[1], p[1], p[2])
+    p[0] = ast.ComparisonPatternMatch(p[1], p[2], p[3])
 
 
 def p_function_arguments_one(p):
