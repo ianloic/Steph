@@ -13,11 +13,16 @@ EvaluationScope = typing.Dict[str, 'Expression']
 TypeScope = typing.Dict[str, typesystem.Type]
 
 
-class Expression:
-    def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Expression']):
-        self.names = frozenset(names)
-        self.children = children
+class Node:
+    def __init__(self, children: typing.Sequence['Node']):
         assert isinstance(children, list)
+        self._children = children
+
+
+class Expression(Node):
+    def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Expression']):
+        super().__init__(children)
+        self.names = frozenset(names)
 
     def evaluate(self, scope: EvaluationScope) -> 'Expression':
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)
@@ -30,8 +35,8 @@ class Expression:
         print('%s%r  {%s}' % (indent, self, ','.join(self.names)))
         indent += ' '
         parents += [self]
-        for child in self.children:
-            if child in parents and child.children:
+        for child in self._children:
+            if child in parents and child._children:
                 print('%scycle to %r in %r' % (indent, child, self))
             else:
                 child.print(indent, parents)
@@ -75,11 +80,15 @@ class List(Expression):
     def __init__(self, elements: typing.List[Expression]):
         super().__init__(union(element.names for element in elements), elements)
 
+    @property
+    def items(self) -> typing.List[Expression]:
+        return self._children
+
     def __repr__(self):
-        return 'List<length=%d>' % len(self.children)
+        return 'List<length=%d>' % len(self.items)
 
     def type(self, scope):
-        types = [child.type(scope) for child in self.children]
+        types = [item.type(scope) for item in self.items]
         # TODO: find the union of the types
         if len(types):
             return typesystem.List(types[0])
@@ -92,8 +101,17 @@ class BinOp(Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
 
+    @property
+    def lhs(self) -> Expression:
+        return self._children[0]
+
+    @property
+    def rhs(self) -> Expression:
+        return self._children[1]
+
     def evaluate(self, scope):
-        lhs, rhs = (c.evaluate(scope) for c in self.children)
+        lhs = self.lhs.evaluate(scope)
+        rhs = self.rhs.evaluate(scope)
         if self.op == '+':
             return lhs + rhs
         elif self.op == '*':
@@ -106,7 +124,8 @@ class BinOp(Expression):
             raise NotImplementedError
 
     def type(self, scope):
-        lhs, rhs = (c.type(scope) for c in self.children)
+        lhs = self.lhs.type(scope)
+        rhs = self.rhs.type(scope)
         if lhs != rhs:
             raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, lhs, rhs))
         return lhs
@@ -138,15 +157,19 @@ class Let(Expression):
         self.specified_type = specified_type
         self._fix_up(expression)
 
+    @property
+    def expression(self) -> Expression:
+        return self._children[0]
+
     def __repr__(self):
         return 'Let<%s>' % (self.name,)
 
-    def _fix_up(self, expression):
+    def _fix_up(self, expression: Expression):
         """Fix up references to this let in sub-expressions to point here."""
         # Remove this let's name from the expression's name list
         expression.names -= {self.name}
 
-        for i, sub in enumerate(expression.children):
+        for i, sub in enumerate(expression._children):
             if self.name not in sub.names:
                 # This sub expression doesn't reference this. Cool.
                 continue
@@ -154,7 +177,7 @@ class Let(Expression):
             if isinstance(sub, Reference):
                 if sub.name == self.name:
                     # This is a reference to this let. Replace it.
-                    expression.children[i] = self.children[0]
+                    expression._children[i] = self.expression
                     continue
             elif isinstance(sub, Let):
                 if sub.name == self.name:
@@ -168,12 +191,12 @@ class Let(Expression):
             self._fix_up(sub)
 
     def evaluate(self, scope):
-        return self.children[0].evaluate(scope)
+        return self.expression.evaluate(scope)
 
     def type(self, scope):
         if self.specified_type is not None:
             return self.specified_type
-        return self.children[0].type(scope)
+        return self.expression.type(scope)
 
 
 class Block(Expression):
@@ -188,12 +211,12 @@ class Block(Expression):
                 raise Exception('Repeated let name %r: ' % name)
 
     @property
-    def _lets(self):
-        return self.children[:-1]
+    def _lets(self) -> typing.List[Let]:
+        return self._children[:-1]
 
     @property
-    def _expression(self):
-        return self.children[-1]
+    def _expression(self) -> Expression:
+        return self._children[-1]
 
     def evaluate(self, scope):
         inner_scope = dict(scope)
@@ -261,10 +284,14 @@ class FunctionPiece(Expression):
                          [expression])
         self.arguments = arguments
 
+    @property
+    def expression(self) -> Expression:
+        return self._children[0]
+
     def type(self, scope):
         inner_scope = dict(scope)
         inner_scope.update({arg.name: arg.type(scope) for arg in self.arguments})
-        return typesystem.Function([arg.type(scope) for arg in self.arguments], self.children[0].type(inner_scope))
+        return typesystem.Function([arg.type(scope) for arg in self.arguments], self.expression.type(inner_scope))
 
     def matches(self, arguments) -> bool:
         return all(x.matches(y) for x, y in zip(self.arguments, arguments))
@@ -272,7 +299,7 @@ class FunctionPiece(Expression):
     def call(self, arguments, scope):
         inner_scope = dict(scope)
         inner_scope.update(dict(zip((arg.name for arg in self.arguments), arguments)))
-        return self.children[0].evaluate(inner_scope)
+        return self.expression.evaluate(inner_scope)
 
     def __repr__(self):
         return 'Function<(%s)>' % (', '.join('%r' % arg for arg in self.arguments))
@@ -284,7 +311,7 @@ class Function(Expression):
 
     @property
     def pieces(self):
-        return self.children
+        return self._children
 
     def evaluate(self, scope):
         return BoundFunction(self, scope)
@@ -297,8 +324,8 @@ class Function(Expression):
             'No matching function implementation for arguments=%r scope=%r in %r' % (arguments, scope, self.pieces))
 
     def type(self, scope):
-        assert len(self.children) == 1
-        return self.children[0].type(scope)
+        assert len(self.pieces) == 1
+        return self.pieces[0].type(scope)
 
 
 class BoundFunction(Expression):
@@ -308,7 +335,7 @@ class BoundFunction(Expression):
 
     @property
     def function(self) -> Function:
-        return self.children[0]
+        return self._children[0]
 
     def call(self, arguments, scope):
         inner_scope = dict(self.closure)
@@ -322,11 +349,11 @@ class FunctionCall(Expression):
 
     @property
     def _function_expression(self):
-        return self.children[0]
+        return self._children[0]
 
     @property
     def _arguments(self):
-        return self.children[1:]
+        return self._children[1:]
 
     def evaluate(self, scope):
         bound_function = self._function_expression.evaluate(scope)
@@ -348,14 +375,24 @@ class Comparison(Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
 
+    @property
+    def lhs(self) -> Expression:
+        return self._children[0]
+
+    @property
+    def rhs(self) -> Expression:
+        return self._children[1]
+
     def type(self, scope):
-        lhs, rhs = [c.type(scope) for c in self.children]
+        lhs = self.lhs.type(scope)
+        rhs = self.rhs.type(scope)
         if lhs != rhs:
             raise Exception("Types don't match for comparison: %s %s" % (lhs, rhs))
         return typesystem.BOOLEAN
 
     def evaluate(self, scope):
-        lhs, rhs = [c.evaluate(scope) for c in self.children]
+        lhs = self.lhs.evaluate(scope)
+        rhs = self.rhs.evaluate(scope)
         if self.op == '<':
             return BooleanLiteral(lhs < rhs)
         elif self.op == '>':
@@ -379,15 +416,15 @@ class IfElse(Expression):
 
     @property
     def _condition(self):
-        return self.children[0]
+        return self._children[0]
 
     @property
     def _true(self):
-        return self.children[1]
+        return self._children[1]
 
     @property
     def _false(self):
-        return self.children[2]
+        return self._children[2]
 
     def type(self, scope):
         assert self._condition.type(scope) == typesystem.BOOLEAN
