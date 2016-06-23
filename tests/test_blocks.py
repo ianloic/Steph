@@ -1,13 +1,13 @@
 import unittest
 
-from parser import yacc
+from parser import parse
 import ast
 import typesystem
 
 
 class BlockTests(unittest.TestCase):
     def test_let(self):
-        p = yacc.parse('{ let foo = 32; return foo + 10; }')
+        p = parse('{ let foo = 32; return foo + 10; }')
         self.assertIsInstance(p, ast.Block)
 
         t = p.type({})
@@ -20,7 +20,7 @@ class BlockTests(unittest.TestCase):
         self.assertEqual(v, 42)
 
     def test_let_function(self):
-        p = yacc.parse('''{
+        p = parse('''{
             let foo = 32;
             let bar = (n:Number) => n+10;
             return foo + (bar(12)) + 10;
@@ -37,7 +37,7 @@ class BlockTests(unittest.TestCase):
         self.assertEqual(v, 64)
 
     def test_let_recursive_function(self):
-        p = yacc.parse('''{
+        p = parse('''{
             let func = () => func;
             return 0;
         }''')
@@ -50,4 +50,4 @@ class BlockTests(unittest.TestCase):
             let x = 2;
             return 0;
         }'''
-        self.assertRaises(Exception, lambda: yacc.parse(source))
+        self.assertRaises(Exception, lambda: parse(source))

@@ -1,13 +1,13 @@
 import unittest
 
-from parser import yacc
+from parser import parse
 import ast
 import typesystem
 
 
 class IfElseTest(unittest.TestCase):
     def test_simple_if_else(self):
-        p = yacc.parse('if (1==1) 23 else 42')
+        p = parse('if (1==1) 23 else 42')
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.type({})

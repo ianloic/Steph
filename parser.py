@@ -6,6 +6,7 @@ import ply.yacc as yacc
 
 
 # noinspection PyUnresolvedReferences
+from ast.base import TypeScope
 from lexer import tokens  # need to have `tokens` in this module's scope for PLY to do its magic
 
 # Parsing rules
@@ -258,3 +259,8 @@ def p_error(p):
 output_directory = os.path.join(os.path.dirname(__file__), 'generated')
 os.makedirs(output_directory, exist_ok=True)
 yacc.yacc(start='expression', outputdir=output_directory)
+
+
+def parse(source: str, **kwargs) -> ast.Expression:
+    parsed = yacc.parse(source, **kwargs) # type: ast.Expression
+    return parsed

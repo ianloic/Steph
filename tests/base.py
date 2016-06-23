@@ -1,10 +1,10 @@
 import unittest
 
-from parser import yacc
+from parser import parse
 import ast
 import typesystem
 
-__all__ = ['StephTest', 'yacc', 'ast', 'typesystem']
+__all__ = ['StephTest', 'parse', 'ast', 'typesystem']
 
 
 class StephTest(unittest.TestCase):

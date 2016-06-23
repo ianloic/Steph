@@ -1,13 +1,13 @@
 import unittest
 
 import ast
-from parser import yacc
+from parser import parse
 import typesystem
 
 
 class EndToEnd(unittest.TestCase):
     def test_simple_program(self):
-        tree = yacc.parse('''
+        tree = parse('''
         {
             let a=x+1;
             let b= (i:Number,j:Number) => {
@@ -23,7 +23,7 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(tree.evaluate({'x': 0}), 34)
 
     def test_recursive(self):
-        tree = yacc.parse('''
+        tree = parse('''
         {
           let fac : (Number)=>Number = (n : Number) =>
             if (n == 1)

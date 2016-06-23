@@ -1,13 +1,13 @@
 import unittest
 
-from parser import yacc
+from parser import parse
 import ast
 import typesystem
 
 
 class ArithmeticTests(unittest.TestCase):
     def test_number_addition(self):
-        p = yacc.parse('23 + 19')
+        p = parse('23 + 19')
         self.assertIsInstance(p, ast.ArithmeticOperator)
         self.assertEqual(p.op, '+')
 
@@ -21,13 +21,13 @@ class ArithmeticTests(unittest.TestCase):
         self.assertEqual(v, 42)
 
     def test_precedence(self):
-        self.assertEqual(yacc.parse('1 + 2 * 3 + 4').evaluate({}), 1 + 2 * 3 + 4)
-        self.assertEqual(yacc.parse('1 * 2 + 3 * 4').evaluate({}), 1 * 2 + 3 * 4)
+        self.assertEqual(parse('1 + 2 * 3 + 4').evaluate({}), 1 + 2 * 3 + 4)
+        self.assertEqual(parse('1 * 2 + 3 * 4').evaluate({}), 1 * 2 + 3 * 4)
 
 
 class ComparisonTest(unittest.TestCase):
     def test_lt_true(self):
-        p = yacc.parse('1 < 2')
+        p = parse('1 < 2')
         self.assertIsInstance(p, ast.Comparison)
 
         t = p.type({})
@@ -40,7 +40,7 @@ class ComparisonTest(unittest.TestCase):
         self.assertTrue(v)
 
     def test_lt_false(self):
-        p = yacc.parse('2 < 1')
+        p = parse('2 < 1')
         self.assertIsInstance(p, ast.Comparison)
 
         t = p.type({})
