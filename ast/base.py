@@ -17,15 +17,18 @@ TypeScope = typing.Dict[str, typesystem.Type]
 
 
 class Node:
-    def __init__(self, children: typing.Sequence['Node']):
+    def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Node']):
+        self.names = frozenset(names)
         assert isinstance(children, list)
         self._children = children
 
+    def source(self, indent) -> str:
+        raise Exception('source() not implemented in %s' % self.__class__.__name__)
+
 
 class Expression(Node):
-    def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Expression']):
-        super().__init__(children)
-        self.names = frozenset(names)
+    def __init__(self, names: typing.Iterable[str], children: typing.Sequence[Node]):
+        super().__init__(names, children)
 
     def evaluate(self, scope: EvaluationScope) -> 'Expression':
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)

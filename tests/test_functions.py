@@ -90,5 +90,19 @@ class PatternMatchingTest(unittest.TestCase):
           return fac(10);
         }
         ''')
-        result = p.evaluate({})
-        self.assertEqual(result, 3628800)
+
+    def test_match_name(self):
+        p = yacc.parse('''
+        {
+            let equals = (value : Number) => {
+                return (arg == value) => true, (arg : Number) => false;
+            };
+            return {
+                let equals10 = equals(10);
+                return equals10(x);
+            };
+        }
+        ''')
+        result = p.evaluate({'x':ast.NumberLiteral(10)})
+        self.assertEqual(result, True)
+

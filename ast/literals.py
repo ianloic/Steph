@@ -17,6 +17,9 @@ class NumberLiteral(Literal, int):
     def __init__(self, value: int):
         super().__init__(value)
 
+    def source(self, indent):
+        return '%d' % self.value
+
     def type(self, scope):
         return typesystem.NUMBER
 
@@ -27,6 +30,12 @@ class NumberLiteral(Literal, int):
 class BooleanLiteral(Literal):
     def __init__(self, value: bool):
         super().__init__(value)
+
+    def source(self, indent):
+        if self.value:
+            return 'true'
+        else:
+            return 'false'
 
     def type(self, scope):
         return typesystem.BOOLEAN

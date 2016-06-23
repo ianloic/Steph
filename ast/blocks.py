@@ -12,6 +12,9 @@ class Reference(Expression):
         super().__init__([name], [])
         self.name = name
 
+    def source(self, indent):
+        return self.name
+
     def evaluate(self, scope):
         value = scope[self.name]
         return value
@@ -29,6 +32,12 @@ class Let(Expression):
         self.name = name
         self.specified_type = specified_type
         self._fix_up(expression)
+
+    def source(self, indent):
+        type_specification = ''
+        if self.specified_type:
+            type_specification = ' : ' + str(self.specified_type)
+        return indent + 'let ' + self.name + type_specification + ' = ' + self.expression.source(indent + '  ') + ';'
 
     @property
     def expression(self) -> Expression:
@@ -90,6 +99,13 @@ class Block(Expression):
     @property
     def _expression(self) -> Expression:
         return self._children[-1]
+
+    def source(self, indent):
+        return ('{\n' +
+                ''.join(let.source(indent+'  ')+'\n' for let in self._lets) +
+                indent + '  return ' + self._expression.source(indent+'    ') + ';\n' +
+                indent + '}')
+
 
     def evaluate(self, scope):
         inner_scope = dict(scope)

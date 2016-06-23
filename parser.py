@@ -121,6 +121,16 @@ def p_expression_number(p):
     p[0] = ast.NumberLiteral(p[1])
 
 
+def p_expression_true(p):
+    """expression : TRUE"""
+    p[0] = ast.BooleanLiteral(True)
+
+
+def p_expression_false(p):
+    """expression : FALSE"""
+    p[0] = ast.BooleanLiteral(False)
+
+
 def p_function_call_arguments_expression(p):
     """function_call_arguments : expression"""
     p[0] = [p[1]]
