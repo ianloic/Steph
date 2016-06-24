@@ -10,28 +10,24 @@ class ArithmeticTests(unittest.TestCase):
         p = parse('23 + 19')
         self.assertIsInstance(p, ast.ArithmeticOperator)
         self.assertEqual(p.op, '+')
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, 42)
+        self.assertEqual(v, ast.NumberLiteral(42))
 
     def test_precedence(self):
-        self.assertEqual(parse('1 + 2 * 3 + 4').evaluate({}), 1 + 2 * 3 + 4)
-        self.assertEqual(parse('1 * 2 + 3 * 4').evaluate({}), 1 * 2 + 3 * 4)
+        self.assertEqual(parse('1 + 2 * 3 + 4').evaluate({}), ast.NumberLiteral(1 + 2 * 3 + 4))
+        self.assertEqual(parse('1 * 2 + 3 * 4').evaluate({}), ast.NumberLiteral(1 * 2 + 3 * 4))
 
 
 class ComparisonTest(unittest.TestCase):
     def test_lt_true(self):
         p = parse('1 < 2')
         self.assertIsInstance(p, ast.Comparison)
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.BOOLEAN)
+        self.assertEqual(p.type, typesystem.BOOLEAN)
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -42,9 +38,7 @@ class ComparisonTest(unittest.TestCase):
     def test_lt_false(self):
         p = parse('2 < 1')
         self.assertIsInstance(p, ast.Comparison)
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.BOOLEAN)
+        self.assertEqual(p.type, typesystem.BOOLEAN)
 
         n = p.names
         self.assertEqual(n, frozenset())

@@ -32,12 +32,12 @@ class ArithmeticOperator(Expression):
         else:
             raise NotImplementedError
 
-    def type(self, scope):
-        lhs = self.lhs.type(scope)
-        rhs = self.rhs.type(scope)
-        if lhs != rhs:
-            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, lhs, rhs))
-        return lhs
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        # TODO: type union
+        if self.lhs.type != self.rhs.type:
+            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
+        self.type = self.lhs.type
 
     def __repr__(self):
         return 'ArithmeticOperator<%s>' % (self.op,)
@@ -47,6 +47,7 @@ class Comparison(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
+        self.type = typesystem.BOOLEAN
 
     @property
     def lhs(self) -> Expression:
@@ -56,18 +57,17 @@ class Comparison(Expression):
     def rhs(self) -> Expression:
         return self._children[1]
 
-    def type(self, scope):
-        lhs = self.lhs.type(scope)
-        rhs = self.rhs.type(scope)
-        if lhs != rhs:
-            raise Exception("Types don't match for comparison: %s %s" % (lhs, rhs))
-        return typesystem.BOOLEAN
+    def initialize_type(self, scope):
+        self.lhs.initialize_type(scope)
+        self.rhs.initialize_type(scope)
+        if self.lhs.type != self.rhs.type:
+            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
 
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
         rhs = self.rhs.evaluate(scope)
         if self.op == '<':
-            return BooleanLiteral(lhs < rhs)
+            return lhs.less_than(rhs)
         elif self.op == '>':
             return BooleanLiteral(lhs > rhs)
         elif self.op == '<=':

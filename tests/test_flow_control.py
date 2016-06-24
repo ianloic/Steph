@@ -10,11 +10,11 @@ class IfElseTest(unittest.TestCase):
         p = parse('if (1==1) 23 else 42')
         self.assertIsInstance(p, ast.IfElse)
 
-        t = p.type({})
+        t = p.initialize_type({})
         self.assertEqual(t, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, 23)
+        self.assertEqual(v, ast.NumberLiteral(23))

@@ -20,12 +20,12 @@ class IfElse(Expression):
     def _false(self):
         return self._children[2]
 
-    def type(self, scope):
-        assert self._condition.type(scope) == typesystem.BOOLEAN
-        true = self._true.type(scope)
-        false = self._false.type(scope)
-        assert true == false
-        return true
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        assert self._condition.type == typesystem.BOOLEAN
+        # TODO: actually we want a type union here
+        assert self._true.type == self._false.type
+        return self._true.type
 
     def evaluate(self, scope):
         condition = self._condition.evaluate(scope)

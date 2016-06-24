@@ -17,13 +17,13 @@ class List(Expression):
     def __repr__(self):
         return 'List<length=%d>' % len(self.items)
 
-    def type(self, scope):
-        types = [item.type(scope) for item in self.items]
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
         # TODO: find the union of the types
-        if len(types):
-            return typesystem.List(types[0])
+        if len(self.items):
+            self.type = typesystem.List(self.items[0].type)
         else:
-            return typesystem.EmptyList()
+            self.type = typesystem.EmptyList()
 
 
 

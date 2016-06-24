@@ -4,7 +4,6 @@ import ast
 import typesystem
 import ply.yacc as yacc
 
-
 # noinspection PyUnresolvedReferences
 from ast.base import TypeScope
 from lexer import tokens  # need to have `tokens` in this module's scope for PLY to do its magic
@@ -256,11 +255,15 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
+
 output_directory = os.path.join(os.path.dirname(__file__), 'generated')
 os.makedirs(output_directory, exist_ok=True)
 yacc.yacc(start='expression', outputdir=output_directory)
 
 
-def parse(source: str, **kwargs) -> ast.Expression:
-    parsed = yacc.parse(source, **kwargs) # type: ast.Expression
+def parse(source: str, scope: TypeScope = None, **kwargs) -> ast.Expression:
+    parsed = yacc.parse(source, **kwargs)  # type: ast.Expression
+    if scope is None:
+        scope = {}
+    parsed.initialize_type(scope)
     return parsed

@@ -22,6 +22,10 @@ class Node:
         assert isinstance(children, list)
         self._children = children
 
+    def initialize_type(self, scope: TypeScope) -> None:
+        for child in self._children:
+            child.initialize_type(scope)
+
     def source(self, indent) -> str:
         raise Exception('source() not implemented in %s' % self.__class__.__name__)
 
@@ -29,12 +33,14 @@ class Node:
 class Expression(Node):
     def __init__(self, names: typing.Iterable[str], children: typing.Sequence[Node]):
         super().__init__(names, children)
+        self.type = None
+
+    def initialize_type(self, scope: TypeScope):
+        if self.type is None:
+            super().initialize_type(scope)
 
     def evaluate(self, scope: EvaluationScope) -> 'Expression':
         raise Exception('evaluate() not implemented in %s' % self.__class__.__name__)
-
-    def type(self, scope: TypeScope) -> typesystem.Type:
-        raise Exception('type() not implemented in %s' % self.__class__.__name__)
 
     def print(self, indent='', parents=None):
         parents = parents or []

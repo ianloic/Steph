@@ -1,8 +1,8 @@
 """A simple type-system for Steph."""
 
-
 import typing
-__all__ = ['named', 'Type', 'UNKNOWN', 'NUMBER', 'STRING', 'BOOLEAN', 'Function', 'List']
+
+__all__ = ['named', 'type_union', 'Type', 'UNKNOWN', 'NUMBER', 'STRING', 'BOOLEAN', 'Function', 'List']
 
 
 class Type:
@@ -33,15 +33,15 @@ class Primitive(Type):
         return self.name
 
     def __repr__(self):
-        return 'Primitive(%s)' % self.name
+        return self.name
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self.name == other.name
 
 
-NUMBER = Primitive('number')
-STRING = Primitive('string')
-BOOLEAN = Primitive('boolean')
+NUMBER = Primitive('Number')
+STRING = Primitive('String')
+BOOLEAN = Primitive('Boolean')
 
 
 class Function(Type):
@@ -50,10 +50,10 @@ class Function(Type):
         self.returns = returns
 
     def __str__(self):
-        return '%s(%s)' % (self.returns, ','.join(str(arg) for arg in self.arguments))
+        return '(%s) => %s' % (','.join(str(arg) for arg in self.arguments), self.returns)
 
     def __repr__(self):
-        return '%r(%s)' % (self.returns, ','.join(repr(arg) for arg in self.arguments))
+        return '(%s) => %r' % (','.join(repr(arg) for arg in self.arguments), self.returns)
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self.arguments == other.arguments and self.returns == other.returns
@@ -89,3 +89,9 @@ def named(name):
         return NUMBER
     else:
         raise Exception("Unknown type named %r" % name)
+
+
+def type_union(a: Type, b: Type) -> Type:
+    if a == b:
+        return a
+    raise Exception("Don't know how to union %r and %r" % (a, b))

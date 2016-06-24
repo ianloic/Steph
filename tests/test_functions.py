@@ -9,9 +9,7 @@ class FunctionTests(unittest.TestCase):
     def test_function_no_args_no_names(self):
         p = parse('() => 42')
         self.assertIsInstance(p, ast.Function)
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.Function([], typesystem.NUMBER))
+        self.assertEqual(p.type, typesystem.Function([], typesystem.NUMBER))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -22,9 +20,7 @@ class FunctionTests(unittest.TestCase):
     def test_function_one_arg_no_names(self):
         p = parse('(x:Number) => x*x')
         self.assertIsInstance(p, ast.Function)
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
+        self.assertEqual(p.type, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -39,45 +35,42 @@ class FunctionTests(unittest.TestCase):
             return 1 + f();
         }
         ''')
-        self.assertEqual(p.type({}), typesystem.NUMBER)
-        self.assertEqual(p.evaluate({}), 2)
+        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.evaluate({}), ast.NumberLiteral(2))
 
 
 class FunctionCallTests(unittest.TestCase):
     def test_function_no_args_no_names(self):
         func = parse('() => 42')
 
-        p = parse('func()')
+        p = parse('func()', {'func': func.type})
         self.assertIsInstance(p, ast.FunctionCall)
         self.assertEqual(p._arguments, [])
         self.assertIsInstance(p._function_expression, ast.Reference)
         self.assertEqual(p._function_expression.name, 'func')
-
-        t = p.type({'func': func.type({})})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
 
         v = p.evaluate({'func': func.evaluate({})})
-        self.assertEqual(v, 42)
+        self.assertEqual(v, ast.NumberLiteral(42))
 
     def test_function_one_arg_no_names(self):
         func = parse('(n:Number) => n+10')
         self.assertIsInstance(func, ast.Function)
-        self.assertEqual(func.type({}), typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
+        self.assertEqual(func.type, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
 
-        p = parse('func(10)')
+        p = parse('func(10)', {'func': func.type})
         self.assertIsInstance(p, ast.FunctionCall)
 
-        t = p.type({'func': func.type({})})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
 
         v = p.evaluate({'func': func.evaluate({})})
-        self.assertEqual(v, 20)
+        self.assertEqual(v, ast.NumberLiteral(20))
 
 
 class PatternMatchingTest(unittest.TestCase):
@@ -92,6 +85,9 @@ class PatternMatchingTest(unittest.TestCase):
         ''')
 
     def test_match_name(self):
+        x = ast.NumberLiteral(10)
+        x.initialize_type({})
+
         p = parse('''
         {
             let equals = (value : Number) => {
@@ -102,9 +98,13 @@ class PatternMatchingTest(unittest.TestCase):
                 return equals10(x);
             };
         }
-        ''')
-        result = p.evaluate({'x':ast.NumberLiteral(10)})
-        self.assertEqual(result, True)
+        ''', {'x': x.type})
+        result = p.evaluate({'x': x})
+        self.assertTrue(result)
+
+        x.value = 20
+        result = p.evaluate({'x': x})
+        self.assertFalse(result)
 
     # def test_closure_capture_outer(self):
     #     p = parse('''

@@ -11,9 +11,7 @@ class FunctionArgument(Node):
     def __init__(self, name: str, names: typing.Sequence[str], children: typing.Sequence[Node]):
         super().__init__(names, children)
         self.name = name
-
-    def type(self, scope: TypeScope) -> typesystem.Type:
-        raise Exception('type() not implemented by %s' % self.__class__.__name__)
+        self.type = None
 
     def matches(self, argument: Expression, scope: EvaluationScope) -> bool:
         # TODO: is the argument a Value not an expression?
@@ -23,23 +21,25 @@ class FunctionArgument(Node):
 class BasicFunctionArgument(FunctionArgument):
     def __init__(self, name: str, specified_type: typesystem.Type):
         super().__init__(name, [], [])
-        self.specified_type = specified_type
+        self.type = specified_type
+        assert specified_type is not None
 
     def source(self, indent):
-        if self.specified_type:
-            return self.name + ' : ' + str(self.specified_type)
+        if self.type:
+            return self.name + ' : ' + str(self.type)
         else:
             return self.name
 
-    def type(self, scope):
-        return self.specified_type
+    def initialize_type(self, scope: TypeScope):
+        # TODO: handle arguments whose types aren't specified up front.
+        pass
 
     def matches(self, argument: Expression, scope: EvaluationScope):
         # TODO: check type? do we do that?
         return True
 
     def __repr__(self):
-        return '%s:%r' % (self.name, self.specified_type)
+        return '%s:%r' % (self.name, self.type)
 
 
 class PatternMatch(FunctionArgument):
@@ -58,8 +58,9 @@ class ComparisonPatternMatch(PatternMatch):
     def expression(self) -> Expression:
         return self._children[0]
 
-    def type(self, scope):
-        return self.expression.type(scope)
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        self.type = self.expression.type
 
     def matches(self, argument: Expression, scope: EvaluationScope):
         value = self.expression.evaluate(scope)
@@ -86,10 +87,15 @@ class FunctionPiece(Expression):
     def expression(self) -> Expression:
         return self._children[-1]
 
-    def type(self, scope):
+    def initialize_type(self, scope):
+        if self.type is not None:
+            return
+        for arg in self.arguments:
+            arg.initialize_type(scope)
         inner_scope = dict(scope)
-        inner_scope.update({arg.name: arg.type(scope) for arg in self.arguments})
-        return typesystem.Function([arg.type(scope) for arg in self.arguments], self.expression.type(inner_scope))
+        inner_scope.update({arg.name: arg.type for arg in self.arguments})
+        self.expression.initialize_type(inner_scope)
+        self.type = typesystem.Function([arg.type for arg in self.arguments], self.expression.type)
 
     def matches(self, arguments, scope) -> bool:
         return all(x.matches(y, scope) for x, y in zip(self.arguments, arguments))
@@ -124,9 +130,12 @@ class Function(Expression):
         raise Exception(
             'No matching function implementation for arguments=%r scope=%r in %r' % (arguments, scope, self.pieces))
 
-    def type(self, scope):
-        assert len(self.pieces) == 1
-        return self.pieces[0].type(scope)
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        # TODO: type union
+        if len(self.pieces) > 1:
+            assert(all(p.type == self.pieces[0].type for p in self.pieces[1:]))
+        self.type = self.pieces[0].type
 
 
 class BoundFunction(Expression):
@@ -167,10 +176,11 @@ class FunctionCall(Expression):
         result = bound_function.call(arguments, scope)
         return result
 
-    def type(self, scope):
-        function_type = self._function_expression.type(scope)
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        function_type = self._function_expression.type
         assert isinstance(function_type, typesystem.Function)
-        return function_type.returns
+        self.type = function_type.returns
 
     def __repr__(self):
         return 'FunctionCall<>'

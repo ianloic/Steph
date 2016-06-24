@@ -10,14 +10,13 @@ class BlockTests(unittest.TestCase):
         p = parse('{ let foo = 32; return foo + 10; }')
         self.assertIsInstance(p, ast.Block)
 
-        t = p.type({})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, 42)
+        self.assertEqual(v, ast.NumberLiteral(42))
 
     def test_let_function(self):
         p = parse('''{
@@ -26,23 +25,13 @@ class BlockTests(unittest.TestCase):
             return foo + (bar(12)) + 10;
         }''', tracking=True)
         self.assertIsInstance(p, ast.Block)
-
-        t = p.type({})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.NUMBER)
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, 64)
-
-    def test_let_recursive_function(self):
-        p = parse('''{
-            let func = () => func;
-            return 0;
-        }''')
-        # p.print()
-        self.assertIsInstance(p, ast.Block)
+        self.assertEqual(v, ast.NumberLiteral(64))
 
     def test_let_repetition(self):
         source = '''{

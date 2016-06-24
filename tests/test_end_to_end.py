@@ -15,12 +15,12 @@ class EndToEnd(unittest.TestCase):
             };
             return 1+2+a+x+b(10, 20);
         }
-        ''')
+        ''', {'x': typesystem.NUMBER})
         self.assertIsInstance(tree, ast.Block)
         self.assertSetEqual(tree.names, {'x'})
-        self.assertEqual(tree.type({'x': typesystem.NUMBER}), typesystem.NUMBER)
-        self.assertEqual(tree.evaluate({'x': 42}), 118)
-        self.assertEqual(tree.evaluate({'x': 0}), 34)
+        self.assertEqual(tree.type, typesystem.NUMBER)
+        self.assertEqual(tree.evaluate({'x': ast.NumberLiteral(42)}), ast.NumberLiteral(118))
+        self.assertEqual(tree.evaluate({'x': ast.NumberLiteral(0)}), ast.NumberLiteral(34))
 
     def test_recursive(self):
         tree = parse('''
@@ -34,4 +34,17 @@ class EndToEnd(unittest.TestCase):
         }
         ''')
         result = tree.evaluate({})
-        self.assertEqual(result, 3628800)
+        self.assertEqual(result, ast.NumberLiteral(3628800))
+
+    def test_recursive_no_type(self):
+        with self.assertRaisesRegex(Exception, r'^Recursive function fac .*'):
+            parse('''
+            {
+              let fac = (n : Number) =>
+                if (n == 1)
+                  1
+                else
+                  n * fac(n-1);
+              return fac(10);
+            }
+            ''')

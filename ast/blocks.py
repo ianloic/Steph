@@ -19,8 +19,9 @@ class Reference(Expression):
         value = scope[self.name]
         return value
 
-    def type(self, scope):
-        return scope[self.name]
+    def initialize_type(self, scope):
+        super().initialize_type(scope)
+        self.type = scope[self.name]
 
     def __repr__(self):
         return 'Reference<%s>' % self.name
@@ -29,6 +30,8 @@ class Reference(Expression):
 class Let(Expression):
     def __init__(self, name: str, specified_type: typesystem.Type, expression: Expression):
         super().__init__(expression.names - {name}, [expression])
+        if name in expression.names and specified_type is None:
+            raise Exception('Recursive function %s must have type specified.' % name)
         self.name = name
         self.specified_type = specified_type
         self._fix_up(expression)
@@ -75,10 +78,12 @@ class Let(Expression):
     def evaluate(self, scope):
         return self.expression.evaluate(scope)
 
-    def type(self, scope):
-        if self.specified_type is not None:
-            return self.specified_type
-        return self.expression.type(scope)
+    def initialize_type(self, scope):
+        inner_scope = dict(scope)
+        # TODO: what to do when no type is specified? Throw an error if it's referenced? Check in fix_up?
+        inner_scope[self.name] = self.specified_type
+        super().initialize_type(inner_scope)
+        self.type = self.specified_type or self.expression.type
 
 
 class Block(Expression):
@@ -102,20 +107,24 @@ class Block(Expression):
 
     def source(self, indent):
         return ('{\n' +
-                ''.join(let.source(indent+'  ')+'\n' for let in self._lets) +
-                indent + '  return ' + self._expression.source(indent+'    ') + ';\n' +
+                ''.join(let.source(indent + '  ') + '\n' for let in self._lets) +
+                indent + '  return ' + self._expression.source(indent + '    ') + ';\n' +
                 indent + '}')
-
 
     def evaluate(self, scope):
         inner_scope = dict(scope)
         inner_scope.update({let.name: let.evaluate(scope) for let in self._lets})
         return self._expression.evaluate(inner_scope)
 
-    def type(self, scope):
+    def initialize_type(self, scope):
+        for let in self._lets:
+            let.initialize_type(scope)
+
         inner_scope = dict(scope)
-        inner_scope.update({let.name: let.type(scope) for let in self._lets})
-        return self._expression.type(inner_scope)
+        inner_scope.update({let.name: let.type for let in self._lets})
+        self._expression.initialize_type(inner_scope)
+
+        self.type = self._expression.type
 
     def __repr__(self):
         return 'Block<%r>' % self._lets
