@@ -47,7 +47,7 @@ class Comparison(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
-        self.type = typesystem.BOOLEAN
+        self.type = typesystem.Boolean()
 
     @property
     def lhs(self) -> Expression:

@@ -11,7 +11,7 @@ class IfElseTest(unittest.TestCase):
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.initialize_type({})
-        self.assertEqual(t, typesystem.NUMBER)
+        self.assertEqual(t, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())

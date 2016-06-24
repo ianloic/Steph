@@ -9,7 +9,7 @@ class FunctionTests(unittest.TestCase):
     def test_function_no_args_no_names(self):
         p = parse('() => 42')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.type, typesystem.Function([], typesystem.NUMBER))
+        self.assertEqual(p.type, typesystem.Function([], typesystem.Number()))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -20,7 +20,7 @@ class FunctionTests(unittest.TestCase):
     def test_function_one_arg_no_names(self):
         p = parse('(x:Number) => x*x')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.type, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
+        self.assertEqual(p.type, typesystem.Function([typesystem.Number()], typesystem.Number()))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -35,7 +35,7 @@ class FunctionTests(unittest.TestCase):
             return 1 + f();
         }
         ''')
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
         self.assertEqual(p.evaluate({}), ast.NumberLiteral(2))
 
 
@@ -48,7 +48,7 @@ class FunctionCallTests(unittest.TestCase):
         self.assertEqual(p._arguments, [])
         self.assertIsInstance(p._function_expression, ast.Reference)
         self.assertEqual(p._function_expression.name, 'func')
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
@@ -59,12 +59,12 @@ class FunctionCallTests(unittest.TestCase):
     def test_function_one_arg_no_names(self):
         func = parse('(n:Number) => n+10')
         self.assertIsInstance(func, ast.Function)
-        self.assertEqual(func.type, typesystem.Function([typesystem.NUMBER], typesystem.NUMBER))
+        self.assertEqual(func.type, typesystem.Function([typesystem.Number()], typesystem.Number()))
 
         p = parse('func(10)', {'func': func.type})
         self.assertIsInstance(p, ast.FunctionCall)
 
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))

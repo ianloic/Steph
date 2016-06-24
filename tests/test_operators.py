@@ -10,7 +10,7 @@ class ArithmeticTests(unittest.TestCase):
         p = parse('23 + 19')
         self.assertIsInstance(p, ast.ArithmeticOperator)
         self.assertEqual(p.op, '+')
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -27,7 +27,7 @@ class ComparisonTest(unittest.TestCase):
     def test_lt_true(self):
         p = parse('1 < 2')
         self.assertIsInstance(p, ast.Comparison)
-        self.assertEqual(p.type, typesystem.BOOLEAN)
+        self.assertEqual(p.type, typesystem.Boolean())
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -38,7 +38,7 @@ class ComparisonTest(unittest.TestCase):
     def test_lt_false(self):
         p = parse('2 < 1')
         self.assertIsInstance(p, ast.Comparison)
-        self.assertEqual(p.type, typesystem.BOOLEAN)
+        self.assertEqual(p.type, typesystem.Boolean())
 
         n = p.names
         self.assertEqual(n, frozenset())

@@ -15,10 +15,10 @@ class EndToEnd(unittest.TestCase):
             };
             return 1+2+a+x+b(10, 20);
         }
-        ''', {'x': typesystem.NUMBER})
+        ''', {'x': typesystem.Number()})
         self.assertIsInstance(tree, ast.Block)
         self.assertSetEqual(tree.names, {'x'})
-        self.assertEqual(tree.type, typesystem.NUMBER)
+        self.assertEqual(tree.type, typesystem.Number())
         self.assertEqual(tree.evaluate({'x': ast.NumberLiteral(42)}), ast.NumberLiteral(118))
         self.assertEqual(tree.evaluate({'x': ast.NumberLiteral(0)}), ast.NumberLiteral(34))
 

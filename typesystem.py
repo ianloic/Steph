@@ -2,7 +2,7 @@
 
 import typing
 
-__all__ = ['named', 'type_union', 'Type', 'UNKNOWN', 'NUMBER', 'STRING', 'BOOLEAN', 'Function', 'List']
+__all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Function', 'List']
 
 
 class Type:
@@ -39,9 +39,28 @@ class Primitive(Type):
         return self.__class__ == other.__class__ and self.name == other.name
 
 
-NUMBER = Primitive('Number')
-STRING = Primitive('String')
-BOOLEAN = Primitive('Boolean')
+_number = Primitive('Number')
+
+
+# noinspection PyPep8Naming
+def Number():
+    return _number
+
+
+_string = Primitive('String')
+
+
+# noinspection PyPep8Naming
+def String():
+    return _string
+
+
+_boolean = Primitive('Boolean')
+
+
+# noinspection PyPep8Naming
+def Boolean():
+    return _boolean
 
 
 class Function(Type):
@@ -82,13 +101,6 @@ class EmptyList(List):
 
     def __repr__(self):
         return 'EmptyList()'
-
-
-def named(name):
-    if name == 'Number':
-        return NUMBER
-    else:
-        raise Exception("Unknown type named %r" % name)
 
 
 def type_union(a: Type, b: Type) -> Type:

@@ -22,7 +22,7 @@ class IfElse(Expression):
 
     def initialize_type(self, scope):
         super().initialize_type(scope)
-        assert self._condition.type == typesystem.BOOLEAN
+        assert self._condition.type == typesystem.Boolean()
         # TODO: actually we want a type union here
         assert self._true.type == self._false.type
         return self._true.type

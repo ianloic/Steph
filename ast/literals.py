@@ -16,7 +16,7 @@ class Literal(Expression):
 
 class NumberLiteral(Literal):
     def __init__(self, value: int):
-        super().__init__(value, typesystem.NUMBER)
+        super().__init__(value, typesystem.Number())
 
     def source(self, indent):
         return '%d' % self.value
@@ -52,7 +52,7 @@ class NumberLiteral(Literal):
 class BooleanLiteral(Literal):
     def __init__(self, value: bool):
         assert isinstance(value, bool)
-        super().__init__(value, typesystem.BOOLEAN)
+        super().__init__(value, typesystem.Boolean())
 
     def source(self, indent):
         if self.value:

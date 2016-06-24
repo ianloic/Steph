@@ -10,7 +10,7 @@ class BlockTests(unittest.TestCase):
         p = parse('{ let foo = 32; return foo + 10; }')
         self.assertIsInstance(p, ast.Block)
 
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -25,7 +25,7 @@ class BlockTests(unittest.TestCase):
             return foo + (bar(12)) + 10;
         }''', tracking=True)
         self.assertIsInstance(p, ast.Block)
-        self.assertEqual(p.type, typesystem.NUMBER)
+        self.assertEqual(p.type, typesystem.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())

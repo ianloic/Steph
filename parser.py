@@ -56,7 +56,10 @@ def p_type_with_parameter(p):
 
 def p_type_name(p):
     """type : TYPENAME"""
-    p[0] = typesystem.named(p[1])
+    if p[1] == 'Number':
+        p[0] = typesystem.Number()
+    else:
+        raise Exception('Unknown type named %r' % p[1])
 
 
 def p_type_spec(p):
