@@ -7,15 +7,31 @@ __all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Func
 
 
 class Operator(Enum):
-    add = 1
-    subtract = 2
-    multiply = 3
-    divide = 4
-    negate = 5
-    compare = 6
-    logical_and = 7
-    logical_or = 8
+    add = ('+', 2)
+    subtract = ('-', 2)
+    multiply = ('*', 2)
+    divide = ('/', 2)
+    negate = ('-', 1)
+    compare = ('==', 2)
+    logical_and = ('&&', 2)
+    logical_or = ('||', 2)
+    logical_not = ('!', 1)
 
+    def __new__(cls, symbol: str, arity: int):
+        # auto-number
+        value = len(cls.__members__) + 1
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.symbol = symbol
+        obj.arity = arity
+        return obj
+
+    @classmethod
+    def lookup(cls, symbol: str, arity: int) -> 'Operator':
+        for member in cls.__members__.values():
+            if member.symbol == symbol and member.arity == arity:
+                return member
+        return None
 
 
 class Type:
@@ -57,7 +73,6 @@ class Primitive(Type):
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self.name == other.name
-
 
 
 _string = Primitive('String')

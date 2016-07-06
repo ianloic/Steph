@@ -63,3 +63,4 @@ class ComparisonTest(unittest.TestCase):
 
         v = p.evaluate({})
         self.assertFalse(v)
+

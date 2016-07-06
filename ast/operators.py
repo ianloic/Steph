@@ -11,15 +11,8 @@ __all__ = ['ArithmeticOperator', 'Comparison', 'Negate']
 class ArithmeticOperator(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
-        if op == '+':
-            self.op = Operator.add
-        elif op == '-':
-            self.op = Operator.subtract
-        elif op == '*':
-            self.op = Operator.multiply
-        elif op == '/':
-            self.op = Operator.divide
-        else:
+        self.op = Operator.lookup(op, 2)
+        if self.op is None:
             raise SyntaxError('Unknown operator %r' % op)
 
     @property
