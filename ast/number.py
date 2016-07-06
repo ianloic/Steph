@@ -23,15 +23,12 @@ class NumberValue(Value):
         from ast.boolean import BooleanValue
         return BooleanValue(self.value < other.value)
 
-    def negate(self):
-        return NumberValue(-self.value)
-
 
 class Number(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
-        return operator in (Operator.add, Operator.subtract, Operator.multiply, Operator.divide)
+        return operator in (Operator.add, Operator.subtract, Operator.multiply, Operator.divide, Operator.negate)
 
-    def operator(self, operator: Operator, a, b):
+    def binary_operator(self, operator: Operator, a: NumberValue, b: NumberValue):
         if operator == Operator.add:
             return NumberValue(a.value + b.value)
         if operator == Operator.subtract:
@@ -42,3 +39,7 @@ class Number(Type, metaclass=Singleton):
             return NumberValue(a.value / b.value)
 
         raise Exception('Operator %r not implemented for numbers' % operator)
+
+    def unary_operator(self, operator: Operator, a: NumberValue):
+        if operator == Operator.negate:
+            return NumberValue(-a.value)

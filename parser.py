@@ -104,7 +104,7 @@ def p_expression_arithmetic(p):
 
 def p_expression_uminus(p):
     """expression : '-' expression %prec UMINUS"""
-    p[0] = p[2].negate()
+    p[0] = ast.Negate(p[2])
 
 
 def p_expression_comparison(p):

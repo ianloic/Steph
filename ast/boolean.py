@@ -25,7 +25,7 @@ class Boolean(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
         return operator in (Operator.logical_and, Operator.logical_or)
 
-    def operator(self, operator: Operator, a: BooleanValue, b: BooleanValue):
+    def binary_operator(self, operator: Operator, a: BooleanValue, b: BooleanValue):
         if operator == Operator.logical_and:
             return BooleanValue(a.value and b.value)
         if operator == Operator.logical_or:

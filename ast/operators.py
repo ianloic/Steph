@@ -5,7 +5,7 @@ from typesystem import Operator
 from ast.base import Expression, TypeScope, EvaluationScope
 from ast.boolean import BooleanValue
 
-__all__ = ['ArithmeticOperator', 'Comparison']
+__all__ = ['ArithmeticOperator', 'Comparison', 'Negate']
 
 
 class ArithmeticOperator(Expression):
@@ -33,7 +33,7 @@ class ArithmeticOperator(Expression):
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
         rhs = self.rhs.evaluate(scope)
-        return self.type.operator(self.op, lhs, rhs)
+        return self.type.binary_operator(self.op, lhs, rhs)
 
     def initialize_type(self, scope):
         super().initialize_type(scope)
@@ -98,9 +98,8 @@ class Negate(Expression):
     def initialize_type(self, scope: TypeScope):
         self.expression.initialize_type(scope)
         self.type = self.expression.type
-        # Make sure this is a number type, I guess...
-        assert typesystem.type_union(self.type, number.Number())
+        assert self.type.supports_operator(Operator.negate)
 
     def evaluate(self, scope: EvaluationScope):
         value = self.expression.evaluate(scope)
-        return self.type.operator('-', number.NumberValue(0), value)
+        return self.type.unary_operator(Operator.negate, value)

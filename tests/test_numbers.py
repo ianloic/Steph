@@ -16,7 +16,7 @@ class NumberTests(StephTest):
 
     def test_negative(self):
         p = parse('-10')
-        self.assertIsInstance(p, ast.number.NumberValue)
+        self.assertIsInstance(p, ast.Negate)
         self.assertEqual(p.type, ast.number.Number())
 
         n = p.names

@@ -22,8 +22,11 @@ class Type:
     def supports_operator(self, operator: Operator):
         raise Exception('supports_operator() not implemented in %s' % self.__class__.__name__)
 
-    def operator(self, operator: Operator, a, b):
-        raise Exception('operator() not implemented in %s' % self.__class__.__name__)
+    def binary_operator(self, operator: Operator, a, b):
+        raise Exception('binary_operator() not implemented in %s' % self.__class__.__name__)
+
+    def unary_operator(self, operator: Operator, a):
+        raise Exception('unary_operator() not implemented in %s' % self.__class__.__name__)
 
 
 class Unknown(Type):
