@@ -7,7 +7,7 @@ keywords = (
 tokens = (
              'ID', 'NUMBER',
              'ARROW',
-             'LT', 'GT', 'LE', 'GE', 'EQ',
+             'LT', 'GT', 'LE', 'GE', 'EQ', 'NEQ',
              'TYPENAME',
          ) + keywords
 
@@ -24,6 +24,7 @@ t_GT = r'>'
 t_LE = r'<='
 t_GE = r'>='
 t_EQ = r'=='
+t_NEQ = r'!='
 
 
 # noinspection PyPep8Naming

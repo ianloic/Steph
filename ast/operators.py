@@ -43,8 +43,9 @@ class ArithmeticOperator(Expression):
 class Comparison(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
-        self.op = op
+        self.op = Operator.lookup(op, 2)
         self.type = ast.boolean.Boolean()
+        self.argument_type = None # will be set in initialize_type
 
     @property
     def lhs(self) -> Expression:
@@ -57,27 +58,17 @@ class Comparison(Expression):
     def initialize_type(self, scope):
         self.lhs.initialize_type(scope)
         self.rhs.initialize_type(scope)
-        if self.lhs.type != self.rhs.type:
+        self.argument_type = typesystem.type_union(self.lhs.type, self.rhs.type)
+        if self.argument_type is None:
             raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
+        if not self.argument_type.supports_operator(self.op):
+            raise Exception('Comparison %s not supported by type %s' % (self.op.symbol, self.argument_type))
 
     def evaluate(self, scope):
-        lhs = self.lhs.evaluate(scope)
-        rhs = self.rhs.evaluate(scope)
-        if self.op == '<':
-            return lhs.less_than(rhs)
-        elif self.op == '>':
-            return BooleanValue(lhs > rhs)
-        elif self.op == '<=':
-            return BooleanValue(lhs <= rhs)
-        elif self.op == '>=':
-            return BooleanValue(lhs >= rhs)
-        elif self.op == '==':
-            return BooleanValue(lhs == rhs)
-        else:
-            raise Exception('Unknown comparison operator %r' % self.op)
+        return self.argument_type.binary_operator(self.op, self.lhs.evaluate(scope), self.rhs.evaluate(scope))
 
     def __repr__(self):
-        return 'Comparison<%s>' % self.op
+        return 'Comparison<%s>' % self.op.symbol
 
 
 class Negate(Expression):

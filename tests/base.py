@@ -8,4 +8,5 @@ __all__ = ['StephTest', 'parse', 'ast', 'typesystem']
 
 
 class StephTest(unittest.TestCase):
-    pass
+    def eval(self, source, scope={}):
+        return parse(source).evaluate(scope)

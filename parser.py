@@ -112,7 +112,9 @@ def p_expression_comparison(p):
                   | expression GT expression
                   | expression LE expression
                   | expression GE expression
-                  | expression EQ expression"""
+                  | expression EQ expression
+                  | expression NEQ expression
+                  """
     p[0] = ast.Comparison(p[1], p[2], p[3])
 
 

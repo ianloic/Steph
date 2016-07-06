@@ -20,6 +20,9 @@ class BooleanValue(Value):
     def __bool__(self):
         return self.value
 
+    def __eq__(self, other):
+        return isinstance(other, BooleanValue) and (self.value == other.value)
+
 
 class Boolean(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):

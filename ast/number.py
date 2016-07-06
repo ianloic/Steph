@@ -1,3 +1,4 @@
+from ast.boolean import BooleanValue
 from ast.literals import Value
 from singleton import Singleton
 from typesystem import Type, Operator
@@ -18,15 +19,13 @@ class NumberValue(Value):
             return super().__eq__(other)
         return self.value == other.value
 
-    def less_than(self, other):
-        assert isinstance(other, NumberValue)
-        from ast.boolean import BooleanValue
-        return BooleanValue(self.value < other.value)
-
 
 class Number(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
-        return operator in (Operator.add, Operator.subtract, Operator.multiply, Operator.divide, Operator.negate)
+        return operator in (
+            Operator.add, Operator.subtract, Operator.multiply, Operator.divide, Operator.negate, Operator.equals,
+            Operator.not_equals, Operator.less_than, Operator.greater_than, Operator.less_or_equal,
+            Operator.greater_or_equal)
 
     def binary_operator(self, operator: Operator, a: NumberValue, b: NumberValue):
         if operator == Operator.add:
@@ -38,8 +37,23 @@ class Number(Type, metaclass=Singleton):
         if operator == Operator.divide:
             return NumberValue(a.value / b.value)
 
+        if operator == Operator.equals:
+            return BooleanValue(a.value == b.value)
+        if operator == Operator.not_equals:
+            return BooleanValue(a.value != b.value)
+        if operator == Operator.less_than:
+            return BooleanValue(a.value < b.value)
+        if operator == Operator.greater_than:
+            return BooleanValue(a.value > b.value)
+        if operator == Operator.less_or_equal:
+            return BooleanValue(a.value <= b.value)
+        if operator == Operator.greater_or_equal:
+            return BooleanValue(a.value >= b.value)
+
         raise Exception('Operator %r not implemented for numbers' % operator)
 
     def unary_operator(self, operator: Operator, a: NumberValue):
         if operator == Operator.negate:
             return NumberValue(-a.value)
+
+        raise Exception('Operator %r not implemented for numbers' % operator)

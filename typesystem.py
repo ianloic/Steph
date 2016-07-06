@@ -7,15 +7,25 @@ __all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Func
 
 
 class Operator(Enum):
+    # arithmetic
     add = ('+', 2)
     subtract = ('-', 2)
     multiply = ('*', 2)
     divide = ('/', 2)
     negate = ('-', 1)
-    compare = ('==', 2)
+
+    # logical
     logical_and = ('&&', 2)
     logical_or = ('||', 2)
     logical_not = ('!', 1)
+
+    # comparison
+    equals = ('==', 2)
+    not_equals = ('!=', 2)
+    less_than = ('<', 2)
+    greater_than = ('>', 2)
+    less_or_equal = ('<=', 2)
+    greater_or_equal = ('>=', 2)
 
     def __new__(cls, symbol: str, arity: int):
         # auto-number
