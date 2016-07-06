@@ -13,5 +13,5 @@ else:
 
 print('tree: %r' % tree)
 print('names: %r' % tree.names)
-print('type: %r' % tree.type({'x': typesystem.Number()}))
+print('type: %r' % tree.type({'x': ast.literals.Number()}))
 print('value: %r' % tree.evaluate({'x': 42}))

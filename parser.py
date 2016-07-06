@@ -1,6 +1,8 @@
 import os
 
 import ast
+import ast.boolean
+import ast.number
 import typesystem
 import ply.yacc as yacc
 
@@ -57,7 +59,7 @@ def p_type_with_parameter(p):
 def p_type_name(p):
     """type : TYPENAME"""
     if p[1] == 'Number':
-        p[0] = typesystem.Number()
+        p[0] = ast.number.Number()
     else:
         raise Exception('Unknown type named %r' % p[1])
 
@@ -102,7 +104,7 @@ def p_expression_arithmetic(p):
 
 def p_expression_uminus(p):
     """expression : '-' expression %prec UMINUS"""
-    p[0] = -p[2]
+    p[0] = p[2].negate()
 
 
 def p_expression_comparison(p):
@@ -121,17 +123,17 @@ def p_expression_group(p):
 
 def p_expression_number(p):
     """expression : NUMBER"""
-    p[0] = ast.NumberLiteral(p[1])
+    p[0] = ast.number.NumberValue(p[1])
 
 
 def p_expression_true(p):
     """expression : TRUE"""
-    p[0] = ast.BooleanLiteral(True)
+    p[0] = ast.boolean.BooleanValue(True)
 
 
 def p_expression_false(p):
     """expression : FALSE"""
-    p[0] = ast.BooleanLiteral(False)
+    p[0] = ast.boolean.BooleanValue(False)
 
 
 def p_function_call_arguments_expression(p):

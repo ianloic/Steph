@@ -1,5 +1,6 @@
 import unittest
 
+import ast.number
 from parser import parse
 import ast
 import typesystem
@@ -10,13 +11,13 @@ class BlockTests(unittest.TestCase):
         p = parse('{ let foo = 32; return foo + 10; }')
         self.assertIsInstance(p, ast.Block)
 
-        self.assertEqual(p.type, typesystem.Number())
+        self.assertEqual(p.type, ast.number.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, ast.NumberLiteral(42))
+        self.assertEqual(v, ast.number.NumberValue(42))
 
     def test_let_function(self):
         p = parse('''{
@@ -25,13 +26,13 @@ class BlockTests(unittest.TestCase):
             return foo + (bar(12)) + 10;
         }''', tracking=True)
         self.assertIsInstance(p, ast.Block)
-        self.assertEqual(p.type, typesystem.Number())
+        self.assertEqual(p.type, ast.number.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, ast.NumberLiteral(64))
+        self.assertEqual(v, ast.number.NumberValue(64))
 
     def test_let_repetition(self):
         source = '''{

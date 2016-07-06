@@ -1,5 +1,6 @@
 import unittest
 
+import ast.number
 from parser import parse
 import ast
 import typesystem
@@ -11,10 +12,10 @@ class IfElseTest(unittest.TestCase):
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.initialize_type({})
-        self.assertEqual(t, typesystem.Number())
+        self.assertEqual(t, ast.number.Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, ast.NumberLiteral(23))
+        self.assertEqual(v, ast.number.NumberValue(23))

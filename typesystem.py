@@ -1,12 +1,29 @@
 """A simple type-system for Steph."""
 
 import typing
+from enum import Enum
 
 __all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Function', 'List']
 
 
+class Operator(Enum):
+    add = 1
+    subtract = 2
+    multiply = 3
+    divide = 4
+    negate = 5
+    compare = 6
+    logical_and = 7
+    logical_or = 8
+
+
+
 class Type:
-    pass
+    def supports_operator(self, operator: Operator):
+        raise Exception('supports_operator() not implemented in %s' % self.__class__.__name__)
+
+    def operator(self, operator: Operator, a, b):
+        raise Exception('operator() not implemented in %s' % self.__class__.__name__)
 
 
 class Unknown(Type):
@@ -39,13 +56,6 @@ class Primitive(Type):
         return self.__class__ == other.__class__ and self.name == other.name
 
 
-_number = Primitive('Number')
-
-
-# noinspection PyPep8Naming
-def Number():
-    return _number
-
 
 _string = Primitive('String')
 
@@ -53,14 +63,6 @@ _string = Primitive('String')
 # noinspection PyPep8Naming
 def String():
     return _string
-
-
-_boolean = Primitive('Boolean')
-
-
-# noinspection PyPep8Naming
-def Boolean():
-    return _boolean
 
 
 class Function(Type):

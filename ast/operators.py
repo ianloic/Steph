@@ -1,6 +1,9 @@
+import ast.boolean
 import typesystem
-from ast.base import Expression
-from ast.literals import BooleanLiteral
+from ast import number
+from typesystem import Operator
+from ast.base import Expression, TypeScope, EvaluationScope
+from ast.boolean import BooleanValue
 
 __all__ = ['ArithmeticOperator', 'Comparison']
 
@@ -8,7 +11,16 @@ __all__ = ['ArithmeticOperator', 'Comparison']
 class ArithmeticOperator(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
-        self.op = op
+        if op == '+':
+            self.op = Operator.add
+        elif op == '-':
+            self.op = Operator.subtract
+        elif op == '*':
+            self.op = Operator.multiply
+        elif op == '/':
+            self.op = Operator.divide
+        else:
+            raise SyntaxError('Unknown operator %r' % op)
 
     @property
     def lhs(self) -> Expression:
@@ -21,23 +33,15 @@ class ArithmeticOperator(Expression):
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
         rhs = self.rhs.evaluate(scope)
-        if self.op == '+':
-            return lhs + rhs
-        elif self.op == '*':
-            return lhs * rhs
-        elif self.op == '-':
-            return lhs - rhs
-        elif self.op == '/':
-            return lhs / rhs
-        else:
-            raise NotImplementedError
+        return self.type.operator(self.op, lhs, rhs)
 
     def initialize_type(self, scope):
         super().initialize_type(scope)
-        # TODO: type union
-        if self.lhs.type != self.rhs.type:
+        self.type = typesystem.type_union(self.lhs.type, self.rhs.type)
+        if self.type is None:
             raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
-        self.type = self.lhs.type
+        if not self.type.supports_operator(self.op):
+            raise Exception('Type %s does not support operator %s' % (self.type, self.op.name))
 
     def __repr__(self):
         return 'ArithmeticOperator<%s>' % (self.op,)
@@ -47,7 +51,7 @@ class Comparison(Expression):
     def __init__(self, lhs: Expression, op: str, rhs: Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = op
-        self.type = typesystem.Boolean()
+        self.type = ast.boolean.Boolean()
 
     @property
     def lhs(self) -> Expression:
@@ -69,15 +73,34 @@ class Comparison(Expression):
         if self.op == '<':
             return lhs.less_than(rhs)
         elif self.op == '>':
-            return BooleanLiteral(lhs > rhs)
+            return BooleanValue(lhs > rhs)
         elif self.op == '<=':
-            return BooleanLiteral(lhs <= rhs)
+            return BooleanValue(lhs <= rhs)
         elif self.op == '>=':
-            return BooleanLiteral(lhs >= rhs)
+            return BooleanValue(lhs >= rhs)
         elif self.op == '==':
-            return BooleanLiteral(lhs == rhs)
+            return BooleanValue(lhs == rhs)
         else:
             raise Exception('Unknown comparison operator %r' % self.op)
 
     def __repr__(self):
         return 'Comparison<%s>' % self.op
+
+
+class Negate(Expression):
+    def __init__(self, expression: Expression):
+        super().__init__(expression.names, [expression])
+
+    @property
+    def expression(self) -> Expression:
+        return self._children[0]
+
+    def initialize_type(self, scope: TypeScope):
+        self.expression.initialize_type(scope)
+        self.type = self.expression.type
+        # Make sure this is a number type, I guess...
+        assert typesystem.type_union(self.type, number.Number())
+
+    def evaluate(self, scope: EvaluationScope):
+        value = self.expression.evaluate(scope)
+        return self.type.operator('-', number.NumberValue(0), value)
