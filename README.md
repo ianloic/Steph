@@ -1,6 +1,7 @@
 # Steph
 
-A toy functional programming language. Named in the tradition of Haskell.
+A toy functional programming language. Named in the tradition of 
+Haskell. Implemented in Python 3 using PLY for parsing.
 
 # Syntax
 
