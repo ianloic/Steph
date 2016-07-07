@@ -2,6 +2,8 @@ from ast.literals import Value
 from singleton import Singleton
 from typesystem import Type, Operator
 
+__all__ = ['BooleanValue', 'Boolean']
+
 
 class BooleanValue(Value):
     def __init__(self, value: bool):

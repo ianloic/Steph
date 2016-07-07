@@ -1,5 +1,5 @@
-from ast.boolean import BooleanValue
-from ast.number import Number, NumberValue
+from ast.boolean import *
+from ast.number import *
 from tests.base import *
 
 

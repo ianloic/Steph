@@ -1,11 +1,8 @@
-import unittest
-
-import ast
-import ast.number
-from parser import parse
+from ast.number import *
+from tests.base import *
 
 
-class EndToEnd(unittest.TestCase):
+class EndToEnd(StephTest):
     def test_simple_program(self):
         tree = parse('''
         {
@@ -15,12 +12,12 @@ class EndToEnd(unittest.TestCase):
             };
             return 1+2+a+x+b(10, 20);
         }
-        ''', {'x': ast.number.Number()})
+        ''', {'x': Number()})
         self.assertIsInstance(tree, ast.Block)
         self.assertSetEqual(tree.names, {'x'})
-        self.assertEqual(tree.type, ast.number.Number())
-        self.assertEqual(tree.evaluate({'x': ast.number.NumberValue(42)}), ast.number.NumberValue(118))
-        self.assertEqual(tree.evaluate({'x': ast.number.NumberValue(0)}), ast.number.NumberValue(34))
+        self.assertEqual(tree.type, Number())
+        self.assertEqual(tree.evaluate({'x': NumberValue(42)}), NumberValue(118))
+        self.assertEqual(tree.evaluate({'x': NumberValue(0)}), NumberValue(34))
 
     def test_recursive(self):
         tree = parse('''
@@ -34,7 +31,7 @@ class EndToEnd(unittest.TestCase):
         }
         ''')
         result = tree.evaluate({})
-        self.assertEqual(result, ast.number.NumberValue(3628800))
+        self.assertEqual(result, NumberValue(3628800))
 
     def test_recursive_no_type(self):
         with self.assertRaisesRegex(Exception, r'^Recursive function fac .*'):

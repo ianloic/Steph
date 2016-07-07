@@ -3,6 +3,8 @@ from ast.literals import Value
 from singleton import Singleton
 from typesystem import Type, Operator
 
+__all__ = ['NumberValue', 'Number']
+
 
 class NumberValue(Value):
     def __init__(self, value: int):

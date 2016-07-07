@@ -1,5 +1,4 @@
-import ast.number
-
+from ast.number import *
 from tests.base import *
 
 
@@ -9,10 +8,10 @@ class IfElseTest(StephTest):
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.initialize_type({})
-        self.assertEqual(t, ast.number.Number())
+        self.assertEqual(t, Number())
 
         n = p.names
         self.assertEqual(n, frozenset())
 
         v = p.evaluate({})
-        self.assertEqual(v, ast.number.NumberValue(23))
+        self.assertEqual(v, NumberValue(23))
