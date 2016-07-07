@@ -1,12 +1,9 @@
-import unittest
-
 import ast.number
-from parser import parse
-import ast
-import typesystem
+
+from tests.base import *
 
 
-class IfElseTest(unittest.TestCase):
+class IfElseTest(StephTest):
     def test_simple_if_else(self):
         p = parse('if (1==1) 23 else 42')
         self.assertIsInstance(p, ast.IfElse)

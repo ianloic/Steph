@@ -1,12 +1,8 @@
-import unittest
-
-import ast
 import ast.number
-import typesystem
-from parser import parse
+from tests.base import *
 
 
-class FunctionTests(unittest.TestCase):
+class FunctionTests(StephTest):
     def test_function_no_args_no_names(self):
         p = parse('() => 42')
         self.assertIsInstance(p, ast.Function)
@@ -40,15 +36,16 @@ class FunctionTests(unittest.TestCase):
         self.assertEqual(p.evaluate({}), ast.number.NumberValue(2))
 
 
-class FunctionCallTests(unittest.TestCase):
+class FunctionCallTests(StephTest):
     def test_function_no_args_no_names(self):
         func = parse('() => 42')
 
         p = parse('func()', {'func': func.type})
         self.assertIsInstance(p, ast.FunctionCall)
         self.assertEqual(p._arguments, [])
-        self.assertIsInstance(p._function_expression, ast.Reference)
-        self.assertEqual(p._function_expression.name, 'func')
+        function_expression = p._function_expression
+        self.assertIsInstance(function_expression, ast.Reference)
+        self.assertEqual(function_expression.name, 'func')
         self.assertEqual(p.type, ast.number.Number())
 
         n = p.names
@@ -74,16 +71,16 @@ class FunctionCallTests(unittest.TestCase):
         self.assertEqual(v, ast.number.NumberValue(20))
 
 
-class PatternMatchingTest(unittest.TestCase):
+class PatternMatchingTest(StephTest):
     def test_factorial(self):
-        p = parse('''
+        self.assertEqual(self.eval('''
         {
           let fac : (Number)=>Number =
             (n == 1) => 1,
             (n : Number) => n * fac(n-1);
           return fac(10);
         }
-        ''')
+        '''), ast.number.NumberValue(3628800))
 
     def test_match_name(self):
         x = ast.number.NumberValue(10)

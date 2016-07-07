@@ -1,5 +1,4 @@
 import ast.boolean
-import typesystem
 from ast.base import Expression
 
 __all__ = ['IfElse']

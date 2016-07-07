@@ -3,7 +3,6 @@ import unittest
 import ast
 import ast.number
 from parser import parse
-import typesystem
 
 
 class EndToEnd(unittest.TestCase):

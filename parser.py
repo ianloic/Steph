@@ -6,8 +6,8 @@ import ast.number
 import typesystem
 import ply.yacc as yacc
 
-# noinspection PyUnresolvedReferences
 from ast.base import TypeScope
+# noinspection PyUnresolvedReferences
 from lexer import tokens  # need to have `tokens` in this module's scope for PLY to do its magic
 
 # Parsing rules
@@ -269,6 +269,7 @@ yacc.yacc(start='expression', outputdir=output_directory)
 
 
 def parse(source: str, scope: TypeScope = None, **kwargs) -> ast.Expression:
+    # noinspection PyUnresolvedReferences
     parsed = yacc.parse(source, **kwargs)  # type: ast.Expression
     if scope is None:
         scope = {}

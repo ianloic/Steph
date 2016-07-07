@@ -48,7 +48,7 @@ class Expression(Node):
         indent += ' '
         parents += [self]
         for child in self._children:
-            if child in parents and child._children:
+            if child in parents:
                 print('%scycle to %r in %r' % (indent, child, self))
             else:
                 child.print(indent, parents)

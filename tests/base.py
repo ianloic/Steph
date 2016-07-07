@@ -8,5 +8,6 @@ __all__ = ['StephTest', 'parse', 'ast', 'typesystem']
 
 
 class StephTest(unittest.TestCase):
-    def eval(self, source, scope={}):
-        return parse(source).evaluate(scope)
+    @staticmethod
+    def eval(source: str, scope: dict = None) -> ast.Expression:
+        return parse(source).evaluate(scope or {})

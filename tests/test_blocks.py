@@ -1,9 +1,8 @@
 import unittest
 
+import ast
 import ast.number
 from parser import parse
-import ast
-import typesystem
 
 
 class BlockTests(unittest.TestCase):

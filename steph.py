@@ -1,8 +1,7 @@
 import sys
 
 from parser import parse
-
-import typesystem
+import ast.number
 
 if len(sys.argv) == 2:
     tree = parse(open(sys.argv[1]).read())
@@ -13,5 +12,5 @@ else:
 
 print('tree: %r' % tree)
 print('names: %r' % tree.names)
-print('type: %r' % tree.type({'x': ast.literals.Number()}))
-print('value: %r' % tree.evaluate({'x': 42}))
+print('type: %r' % tree.type({'x': ast.number.Number()}))
+print('value: %r' % tree.evaluate({'x': ast.number.NumberValue(42)}))

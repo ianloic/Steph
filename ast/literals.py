@@ -5,10 +5,10 @@ __all__ = []
 
 
 class Value(Expression):
-    def __init__(self, value, type: typesystem.Type):
+    def __init__(self, value, value_type: typesystem.Type):
         super().__init__([], [])
         self.value = value
-        self.type = type
+        self.type = value_type
 
     def evaluate(self, scope):
         return self

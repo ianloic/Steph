@@ -1,9 +1,7 @@
 import ast.boolean
 import typesystem
-from ast import number
-from typesystem import Operator
 from ast.base import Expression, TypeScope, EvaluationScope
-from ast.boolean import BooleanValue
+from typesystem import Operator
 
 __all__ = ['ArithmeticOperator', 'Comparison', 'Negate']
 
@@ -45,7 +43,7 @@ class Comparison(Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = Operator.lookup(op, 2)
         self.type = ast.boolean.Boolean()
-        self.argument_type = None # will be set in initialize_type
+        self.argument_type = None  # will be set in initialize_type
 
     @property
     def lhs(self) -> Expression:
