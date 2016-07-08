@@ -1,7 +1,7 @@
 import ast.boolean
 import typesystem
-from ast.base import Expression, TypeScope, EvaluationScope
-from typesystem import Operator
+from ast.base import Expression, TypeScope, EvaluationScope, ParseException
+from typesystem import Operator, TypeException
 
 __all__ = ['ArithmeticOperator', 'Comparison', 'Negate']
 
@@ -11,7 +11,7 @@ class ArithmeticOperator(Expression):
         super().__init__(lhs.names | rhs.names, [lhs, rhs])
         self.op = Operator.lookup(op, 2)
         if self.op is None:
-            raise SyntaxError('Unknown operator %r' % op)
+            raise ParseException('Unknown operator %r' % op)
 
     @property
     def lhs(self) -> Expression:
@@ -30,9 +30,9 @@ class ArithmeticOperator(Expression):
         super().initialize_type(scope)
         self.type = typesystem.type_union(self.lhs.type, self.rhs.type)
         if self.type is None:
-            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
+            raise TypeException('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
         if not self.type.supports_operator(self.op):
-            raise Exception('Type %s does not support operator %s' % (self.type, self.op.name))
+            raise TypeException('Type %s does not support operator %s' % (self.type, self.op.name))
 
     def __repr__(self):
         return 'ArithmeticOperator<%s>' % (self.op,)
@@ -58,9 +58,9 @@ class Comparison(Expression):
         self.rhs.initialize_type(scope)
         self.argument_type = typesystem.type_union(self.lhs.type, self.rhs.type)
         if self.argument_type is None:
-            raise Exception('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
+            raise TypeException('Type mismatch in %r: lhs=%r rhs=%r' % (self, self.lhs.type, self.rhs.type))
         if not self.argument_type.supports_operator(self.op):
-            raise Exception('Comparison %s not supported by type %s' % (self.op.symbol, self.argument_type))
+            raise TypeException('Comparison %s not supported by type %s' % (self.op.symbol, self.argument_type))
 
     def evaluate(self, scope):
         return self.argument_type.binary_operator(self.op, self.lhs.evaluate(scope), self.rhs.evaluate(scope))

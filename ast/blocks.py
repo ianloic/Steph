@@ -1,7 +1,7 @@
 import typing
 
 import typesystem
-from ast.base import Expression, union
+from ast.base import Expression, union, ParseException
 from ast.functions import FunctionPiece
 
 __all__ = ['Reference', 'Let', 'Block']
@@ -31,7 +31,7 @@ class Let(Expression):
     def __init__(self, name: str, specified_type: typesystem.Type, expression: Expression):
         super().__init__(expression.names - {name}, [expression])
         if name in expression.names and specified_type is None:
-            raise Exception('Recursive function %s must have type specified.' % name)
+            raise ParseException('Recursive function %s must have type specified.' % name)
         self.name = name
         self.specified_type = specified_type
         self._fix_up(expression)
@@ -95,7 +95,7 @@ class Block(Expression):
         let_names = [let.name for let in lets]
         for name in let_names:
             if let_names.count(name) > 1:
-                raise Exception('Repeated let name %r: ' % name)
+                raise ParseException('Repeated let name %r: ' % name)
 
     @property
     def _lets(self) -> typing.List[Let]:

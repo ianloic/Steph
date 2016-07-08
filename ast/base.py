@@ -16,6 +16,10 @@ EvaluationScope = typing.Dict[str, 'Expression']
 TypeScope = typing.Dict[str, typesystem.Type]
 
 
+class ParseException(Exception):
+    pass
+
+
 class Node:
     def __init__(self, names: typing.Iterable[str], children: typing.Sequence['Node']):
         self.names = frozenset(names)

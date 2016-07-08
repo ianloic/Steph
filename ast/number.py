@@ -1,7 +1,7 @@
 from ast.boolean import BooleanValue
 from ast.literals import Value
 from singleton import Singleton
-from typesystem import Type, Operator
+from typesystem import Type, Operator, TypeException
 
 __all__ = ['NumberValue', 'Number']
 
@@ -52,10 +52,13 @@ class Number(Type, metaclass=Singleton):
         if operator == Operator.greater_or_equal:
             return BooleanValue(a.value >= b.value)
 
-        raise Exception('Operator %r not implemented for numbers' % operator)
+        raise TypeException('Operator %r not implemented for numbers' % operator)
 
     def unary_operator(self, operator: Operator, a: NumberValue):
         if operator == Operator.negate:
             return NumberValue(-a.value)
 
-        raise Exception('Operator %r not implemented for numbers' % operator)
+        raise TypeException('Operator %r not implemented for numbers' % operator)
+
+    def __str__(self):
+        return 'Number'

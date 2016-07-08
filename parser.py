@@ -6,7 +6,7 @@ import ast.number
 import typesystem
 import ply.yacc as yacc
 
-from ast.base import TypeScope
+from ast.base import TypeScope, ParseException
 # noinspection PyUnresolvedReferences
 from lexer import tokens  # need to have `tokens` in this module's scope for PLY to do its magic
 
@@ -53,7 +53,7 @@ def p_type_with_parameter(p):
     if typename == 'List':
         p[0] = typesystem.List(parameter)
     else:
-        raise Exception('Unknown type %s' % typename)
+        raise ParseException('Unknown type %s' % typename)
 
 
 def p_type_name(p):
@@ -61,7 +61,7 @@ def p_type_name(p):
     if p[1] == 'Number':
         p[0] = ast.number.Number()
     else:
-        raise Exception('Unknown type named %r' % p[1])
+        raise ParseException('Unknown type named %r' % p[1])
 
 
 def p_type_spec(p):
@@ -80,7 +80,7 @@ def p_type_spec_opt_type_spec(p):
 
 
 def p_let(p: yacc.YaccProduction):
-    """let : LET ID type_spec_opt "=" expression ";\""""
+    """let : LET ID type_spec_opt "=" expression ";" """
     p[0] = ast.Let(p[2], p[3], p[5])
 
 
@@ -271,7 +271,6 @@ yacc.yacc(start='expression', outputdir=output_directory)
 def parse(source: str, scope: TypeScope = None, **kwargs) -> ast.Expression:
     # noinspection PyUnresolvedReferences
     parsed = yacc.parse(source, **kwargs)  # type: ast.Expression
-    if scope is None:
-        scope = {}
-    parsed.initialize_type(scope)
+    assert parsed is not None
+    parsed.initialize_type(scope or {})
     return parsed

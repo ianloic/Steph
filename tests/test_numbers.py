@@ -27,20 +27,21 @@ class NumberTests(StephTest):
         self.assertEqual(v, NumberValue(-10))
 
     def test_comparison(self):
-        self.assertEqual(self.eval('1 == 1'), BooleanValue(True))
-        self.assertEqual(self.eval('1 == 2'), BooleanValue(False))
+        self.assertEvaluation('1 == 1', True)
+        self.assertEvaluation('1 == 1', True)
+        self.assertEvaluation('1 == 2', False)
 
-        self.assertEqual(self.eval('1 != 1'), BooleanValue(False))
-        self.assertEqual(self.eval('1 != 2'), BooleanValue(True))
+        self.assertEvaluation('1 != 1', False)
+        self.assertEvaluation('1 != 2', True)
 
-        self.assertEqual(self.eval('1 < 1'), BooleanValue(False))
-        self.assertEqual(self.eval('1 < 2'), BooleanValue(True))
+        self.assertEvaluation('1 < 1', False)
+        self.assertEvaluation('1 < 2', True)
 
-        self.assertEqual(self.eval('1 > 1'), BooleanValue(False))
-        self.assertEqual(self.eval('1 > 2'), BooleanValue(False))
+        self.assertEvaluation('1 > 1', False)
+        self.assertEvaluation('1 > 2', False)
 
-        self.assertEqual(self.eval('1 <= 1'), BooleanValue(True))
-        self.assertEqual(self.eval('1 <= 2'), BooleanValue(True))
+        self.assertEvaluation('1 <= 1', True)
+        self.assertEvaluation('1 <= 2', True)
 
-        self.assertEqual(self.eval('1 >= 1'), BooleanValue(True))
-        self.assertEqual(self.eval('1 >= 2'), BooleanValue(False))
+        self.assertEvaluation('1 >= 1', True)
+        self.assertEvaluation('1 >= 2', False)

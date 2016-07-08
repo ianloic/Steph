@@ -36,5 +36,7 @@ class Boolean(Type, metaclass=Singleton):
         if operator == Operator.logical_or:
             return BooleanValue(a.value or b.value)
 
-        raise Exception('Operator %r not implemented for booleans' % operator)
+        raise TypeException('Operator %r not implemented for booleans' % operator)
 
+    def __str__(self):
+        return 'Boolean'

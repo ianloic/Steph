@@ -6,6 +6,10 @@ from enum import Enum
 __all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Function', 'List']
 
 
+class TypeException(Exception):
+    pass
+
+
 class Operator(Enum):
     # arithmetic
     add = ('+', 2)
@@ -46,13 +50,13 @@ class Operator(Enum):
 
 class Type:
     def supports_operator(self, operator: Operator):
-        raise Exception('supports_operator() not implemented in %s' % self.__class__.__name__)
+        raise TypeException('supports_operator() not implemented in %s' % self.__class__.__name__)
 
     def binary_operator(self, operator: Operator, a, b):
-        raise Exception('binary_operator() not implemented in %s' % self.__class__.__name__)
+        raise TypeException('binary_operator() not implemented in %s' % self.__class__.__name__)
 
     def unary_operator(self, operator: Operator, a):
-        raise Exception('unary_operator() not implemented in %s' % self.__class__.__name__)
+        raise TypeException('unary_operator() not implemented in %s' % self.__class__.__name__)
 
 
 class Unknown(Type):
@@ -136,4 +140,4 @@ class EmptyList(List):
 def type_union(a: Type, b: Type) -> Type:
     if a == b:
         return a
-    raise Exception("Don't know how to union %r and %r" % (a, b))
+    raise TypeException("Can't know how to union %s and %s" % (a, b))

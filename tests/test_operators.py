@@ -1,6 +1,7 @@
 from ast.boolean import *
 from ast.number import *
 from tests.base import *
+from typesystem import TypeException
 
 
 class ArithmeticTests(StephTest):
@@ -17,18 +18,15 @@ class ArithmeticTests(StephTest):
         self.assertEqual(v, NumberValue(42))
 
     def test_precedence(self):
-        self.assertEqual(parse('1 + 2 * 3 + 4').evaluate({}), NumberValue(1 + 2 * 3 + 4))
-        self.assertEqual(parse('1 * 2 + 3 * 4').evaluate({}), NumberValue(1 * 2 + 3 * 4))
+        self.assertEvaluation('1 + 2 * 3 + 4', 1 + 2 * 3 + 4)
+        self.assertEvaluation('1 * 2 + 3 * 4', 1 * 2 + 3 * 4)
 
     def test_number_boolean_addition(self):
-        with self.assertRaises(Exception):
-            parse('true + 42')
-        with self.assertRaises(Exception):
-            parse('42 + false')
+        self.assertRaisesParseException('true + 42', TypeException)
+        self.assertRaisesParseException('42 + false', TypeException)
 
     def test_boolean_addition(self):
-        with self.assertRaises(Exception):
-            parse('true + false').evaluate({})
+        self.assertRaisesParseException('true + false', TypeException)
 
     def test_negate(self):
         with self.assertRaises(Exception):
