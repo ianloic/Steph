@@ -1,6 +1,6 @@
 from ast.literals import Value
 from singleton import Singleton
-from typesystem import Type, Operator
+from typesystem import Type, Operator, TypeException
 
 
 class StringValue(Value):
@@ -16,7 +16,13 @@ class StringValue(Value):
 
 class String(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
-        return operator in (Operator.add)
+        return operator in (Operator.add, )
+
+    def binary_operator(self, operator: Operator, a: StringValue, b: StringValue):
+        if operator == Operator.add:
+            return StringValue(a.value + b.value)
+        raise TypeException('Operator %r not implemented for strings' % operator)
+
 
     def __str__(self):
         return 'String'
