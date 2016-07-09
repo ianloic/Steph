@@ -7,22 +7,22 @@ class EndToEnd(StephTest):
         tree = parse('''
         {
             let a=x+1;
-            let b= (i:Number,j:Number) => {
+            let b= (i:NumberType,j:NumberType) => {
                 return i+j;
             };
             return 1+2+a+x+b(10, 20);
         }
-        ''', {'x': Number()})
+        ''', {'x': NumberType()})
         self.assertIsInstance(tree, ast.Block)
         self.assertSetEqual(tree.names, {'x'})
-        self.assertEqual(tree.type, Number())
+        self.assertEqual(tree.type, NumberType())
         self.assertEqual(tree.evaluate({'x': NumberValue(42)}), NumberValue(118))
         self.assertEqual(tree.evaluate({'x': NumberValue(0)}), NumberValue(34))
 
     def test_recursive(self):
         tree = parse('''
         {
-          let fac : (Number)=>Number = (n : Number) =>
+          let fac : (NumberType)=>NumberType = (n : NumberType) =>
             if (n == 1)
               1
             else
@@ -37,7 +37,7 @@ class EndToEnd(StephTest):
         with self.assertRaisesRegex(Exception, r'^Recursive function fac .*'):
             parse('''
             {
-              let fac = (n : Number) =>
+              let fac = (n : NumberType) =>
                 if (n == 1)
                   1
                 else

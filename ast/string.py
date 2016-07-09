@@ -5,16 +5,16 @@ from typesystem import Type, Operator, TypeException
 
 class StringValue(Value):
     def __init__(self, value: str):
-        super().__init__(value, String())
+        super().__init__(value, StringType())
 
     def __str__(self):
         return repr(self.value)
 
     def __repr__(self):
-        return 'String<%r>' % self.value
+        return 'StringType<%r>' % self.value
 
 
-class String(Type, metaclass=Singleton):
+class StringType(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
         return operator in (Operator.add, )
 
@@ -25,4 +25,4 @@ class String(Type, metaclass=Singleton):
 
 
     def __str__(self):
-        return 'String'
+        return 'StringType'

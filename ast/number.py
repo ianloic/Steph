@@ -3,18 +3,18 @@ from ast.literals import Value
 from singleton import Singleton
 from typesystem import Type, Operator, TypeException
 
-__all__ = ['NumberValue', 'Number']
+__all__ = ['NumberValue', 'NumberType']
 
 
 class NumberValue(Value):
     def __init__(self, value: int):
-        super().__init__(value, Number())
+        super().__init__(value, NumberType())
 
     def source(self, indent):
         return '%d' % self.value
 
     def __repr__(self):
-        return 'Number<%d>' % self.value
+        return 'NumberType<%d>' % self.value
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -22,7 +22,7 @@ class NumberValue(Value):
         return self.value == other.value
 
 
-class Number(Type, metaclass=Singleton):
+class NumberType(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
         return operator in (
             Operator.add, Operator.subtract, Operator.multiply, Operator.divide, Operator.negate, Operator.equals,
@@ -61,4 +61,4 @@ class Number(Type, metaclass=Singleton):
         raise TypeException('Operator %r not implemented for numbers' % operator)
 
     def __str__(self):
-        return 'Number'
+        return 'NumberType'

@@ -12,5 +12,5 @@ else:
 
 print('tree: %r' % tree)
 print('names: %r' % tree.names)
-print('type: %r' % tree.type({'x': ast.number.Number()}))
+print('type: %r' % tree.type({'x': ast.number.NumberType()}))
 print('value: %r' % tree.evaluate({'x': ast.number.NumberValue(42)}))

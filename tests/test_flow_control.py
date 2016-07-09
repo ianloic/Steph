@@ -8,7 +8,7 @@ class IfElseTest(StephTest):
         self.assertIsInstance(p, ast.IfElse)
 
         t = p.initialize_type({})
-        self.assertEqual(t, Number())
+        self.assertEqual(t, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset())

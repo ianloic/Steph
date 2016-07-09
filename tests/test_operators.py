@@ -9,7 +9,7 @@ class ArithmeticTests(StephTest):
         p = parse('23 + 19')
         self.assertIsInstance(p, ast.ArithmeticOperator)
         self.assertEqual(p.op, typesystem.Operator.add)
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset())

@@ -53,15 +53,15 @@ def p_type_with_parameter(p):
     typename = p[1]
     parameter = p[3]
     if typename == 'ListValue':
-        p[0] = ast.lists.List(parameter)
+        p[0] = ast.lists.ListType(parameter)
     else:
         raise ParseException('Unknown type %s' % typename)
 
 
 def p_type_name(p):
     """type : TYPENAME"""
-    if p[1] == 'Number':
-        p[0] = ast.number.Number()
+    if p[1] == 'NumberType':
+        p[0] = ast.number.NumberType()
     else:
         raise ParseException('Unknown type named %r' % p[1])
 

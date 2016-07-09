@@ -7,7 +7,7 @@ class BlockTests(StephTest):
         p = parse('{ let foo = 32; return foo + 10; }')
         self.assertIsInstance(p, ast.Block)
 
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -18,11 +18,11 @@ class BlockTests(StephTest):
     def test_let_function(self):
         p = parse('''{
             let foo = 32;
-            let bar = (n:Number) => n+10;
+            let bar = (n:NumberType) => n+10;
             return foo + (bar(12)) + 10;
         }''', tracking=True)
         self.assertIsInstance(p, ast.Block)
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset())

@@ -6,7 +6,7 @@ class FunctionTests(StephTest):
     def test_function_no_args_no_names(self):
         p = parse('() => 42')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.type, typesystem.Function([], Number()))
+        self.assertEqual(p.type, typesystem.Function([], NumberType()))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -15,9 +15,9 @@ class FunctionTests(StephTest):
         self.assertIsInstance(v, ast.BoundFunction)
 
     def test_function_one_arg_no_names(self):
-        p = parse('(x:Number) => x*x')
+        p = parse('(x:NumberType) => x*x')
         self.assertIsInstance(p, ast.Function)
-        self.assertEqual(p.type, typesystem.Function([Number()], Number()))
+        self.assertEqual(p.type, typesystem.Function([NumberType()], NumberType()))
 
         n = p.names
         self.assertEqual(n, frozenset())
@@ -32,7 +32,7 @@ class FunctionTests(StephTest):
             return 1 + f();
         }
         ''')
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
         self.assertEqual(p.evaluate({}), NumberValue(2))
 
 
@@ -46,7 +46,7 @@ class FunctionCallTests(StephTest):
         function_expression = p._function_expression
         self.assertIsInstance(function_expression, ast.Reference)
         self.assertEqual(function_expression.name, 'func')
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
@@ -55,14 +55,14 @@ class FunctionCallTests(StephTest):
         self.assertEqual(v, NumberValue(42))
 
     def test_function_one_arg_no_names(self):
-        func = parse('(n:Number) => n+10')
+        func = parse('(n:NumberType) => n+10')
         self.assertIsInstance(func, ast.Function)
-        self.assertEqual(func.type, typesystem.Function([Number()], Number()))
+        self.assertEqual(func.type, typesystem.Function([NumberType()], NumberType()))
 
         p = parse('func(10)', {'func': func.type})
         self.assertIsInstance(p, ast.FunctionCall)
 
-        self.assertEqual(p.type, Number())
+        self.assertEqual(p.type, NumberType())
 
         n = p.names
         self.assertEqual(n, frozenset(['func']))
@@ -75,9 +75,9 @@ class PatternMatchingTest(StephTest):
     def test_factorial(self):
         self.assertEqual(self.eval('''
         {
-          let fac : (Number)=>Number =
+          let fac : (NumberType)=>NumberType =
             (n == 1) => 1,
-            (n : Number) => n * fac(n-1);
+            (n : NumberType) => n * fac(n-1);
           return fac(10);
         }
         '''), NumberValue(3628800))
@@ -88,8 +88,8 @@ class PatternMatchingTest(StephTest):
 
         p = parse('''
         {
-            let equals = (value : Number) => {
-                return (arg == value) => true, (arg : Number) => false;
+            let equals = (value : NumberType) => {
+                return (arg == value) => true, (arg : NumberType) => false;
             };
             return {
                 let equals10 = equals(10);

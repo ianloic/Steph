@@ -4,7 +4,7 @@ import typesystem
 from ast.base import Expression, union
 from typesystem import Type, NOTHING
 
-__all__ = ['ListValue', 'List', 'EmptyList']
+__all__ = ['ListValue', 'ListType', 'EmptyListType']
 
 
 # TODO: should this be a Value subclass?
@@ -23,12 +23,12 @@ class ListValue(Expression):
         super().initialize_type(scope)
         # TODO: find the union of the types
         if len(self.items):
-            self.type = List(self.items[0].type)
+            self.type = ListType(self.items[0].type)
         else:
-            self.type = EmptyList()
+            self.type = EmptyListType()
 
 
-class List(Type):
+class ListType(Type):
     def __init__(self, item: Type):
         self.item = item
 
@@ -42,12 +42,12 @@ class List(Type):
         return self.__class__ == other.__class__ and self.item == other.item
 
 
-class EmptyList(List):
+class EmptyListType(ListType):
     def __init__(self):
         super().__init__(NOTHING)
 
     def __str__(self):
-        return 'EmptyList'
+        return 'EmptyListType'
 
     def __repr__(self):
-        return 'EmptyList()'
+        return 'EmptyListType()'

@@ -89,7 +89,7 @@ class Primitive(Type):
         return self.__class__ == other.__class__ and self.name == other.name
 
 
-_string = Primitive('String')
+_string = Primitive('StringType')
 
 
 # noinspection PyPep8Naming
