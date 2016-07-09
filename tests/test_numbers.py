@@ -1,4 +1,3 @@
-from ast.boolean import *
 from ast.number import *
 from tests.base import *
 

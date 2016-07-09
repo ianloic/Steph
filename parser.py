@@ -3,6 +3,7 @@ import os
 import ast
 import ast.boolean
 import ast.number
+import ast.string
 import typesystem
 import ply.yacc as yacc
 
@@ -136,6 +137,11 @@ def p_expression_true(p):
 def p_expression_false(p):
     """expression : FALSE"""
     p[0] = ast.boolean.BooleanValue(False)
+
+
+def p_expression_string(p):
+    """expression : STRING"""
+    p[0] = ast.string.StringValue(p[1][1:-1])
 
 
 def p_function_call_arguments_expression(p):

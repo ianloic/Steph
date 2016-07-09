@@ -5,7 +5,7 @@ keywords = (
 )
 
 tokens = (
-             'ID', 'NUMBER',
+             'ID', 'NUMBER', 'STRING',
              'ARROW',
              'LT', 'GT', 'LE', 'GE', 'EQ', 'NEQ',
              'TYPENAME',
@@ -26,6 +26,9 @@ t_GE = r'>='
 t_EQ = r'=='
 t_NEQ = r'!='
 
+# TODO: better strings with escape characters and such
+t_STRING = r'"[^"]*"'
+
 
 # noinspection PyPep8Naming
 def t_ID(t):
@@ -44,6 +47,12 @@ def t_TYPENAME(t):
 def t_NUMBER(t):
     r"""\d+"""
     t.value = int(t.value)
+    return t
+
+# noinspection PyPep8Naming
+def t_ESCAPED(t):
+    r"""\\[a-z]"""
+    t.value = t.value[1:]
     return t
 
 

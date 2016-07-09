@@ -4,6 +4,7 @@ from ast.base import EvaluationScope, ParseException
 from ast.boolean import BooleanValue
 from ast.literals import Value
 from ast.number import NumberValue
+from ast.string import StringValue
 from parser import parse
 import ast
 import typesystem
@@ -16,6 +17,8 @@ def value_for_python_value(value):
         return BooleanValue(value)
     elif isinstance(value, int):
         return NumberValue(value)
+    elif isinstance(value, str):
+        return StringValue(value)
     else:
         raise Exception("Don't know how to make a Steph Value for %r" % value)
 

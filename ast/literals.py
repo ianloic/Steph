@@ -12,3 +12,6 @@ class Value(Expression):
 
     def evaluate(self, scope):
         return self
+
+    def __eq__(self, other: 'Value'):
+        return self.type == other.type and self.value == other.value
