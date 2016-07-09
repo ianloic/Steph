@@ -3,7 +3,7 @@
 import typing
 from enum import Enum
 
-__all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Function', 'List']
+__all__ = ['type_union', 'Type', 'UNKNOWN', 'Number', 'STRING', 'BOOLEAN', 'Function']
 
 
 class TypeException(Exception):
@@ -110,31 +110,6 @@ class Function(Type):
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self.arguments == other.arguments and self.returns == other.returns
-
-
-class List(Type):
-    def __init__(self, item: Type):
-        self.item = item
-
-    def __str__(self):
-        return 'List(%s)' % self.item
-
-    def __repr__(self):
-        return 'List(%r)' % self.item
-
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.item == other.item
-
-
-class EmptyList(List):
-    def __init__(self):
-        super().__init__(NOTHING)
-
-    def __str__(self):
-        return 'EmptyList'
-
-    def __repr__(self):
-        return 'EmptyList()'
 
 
 def type_union(a: Type, b: Type) -> Type:

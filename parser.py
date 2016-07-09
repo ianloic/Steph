@@ -2,6 +2,7 @@ import os
 
 import ast
 import ast.boolean
+import ast.lists
 import ast.number
 import ast.string
 import typesystem
@@ -51,8 +52,8 @@ def p_type_with_parameter(p):
     """type : TYPENAME '(' type ')'"""
     typename = p[1]
     parameter = p[3]
-    if typename == 'List':
-        p[0] = typesystem.List(parameter)
+    if typename == 'ListValue':
+        p[0] = ast.lists.List(parameter)
     else:
         raise ParseException('Unknown type %s' % typename)
 
@@ -252,12 +253,12 @@ def p_list_elements_recursive(p):
 
 def p_expression_list_empty(p):
     """expression : '[' ']'"""
-    p[0] = ast.List([])
+    p[0] = ast.ListValue([])
 
 
 def p_expression_list(p):
     """expression : '[' list_elements ']'"""
-    p[0] = ast.List(p[2])
+    p[0] = ast.ListValue(p[2])
 
 
 def p_error(p):
