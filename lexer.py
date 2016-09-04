@@ -49,6 +49,7 @@ def t_NUMBER(t):
     t.value = int(t.value)
     return t
 
+
 # noinspection PyPep8Naming
 def t_ESCAPED(t):
     r"""\\[a-z]"""

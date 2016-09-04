@@ -16,13 +16,12 @@ class StringValue(Value):
 
 class StringType(Type, metaclass=Singleton):
     def supports_operator(self, operator: Operator):
-        return operator in (Operator.add, )
+        return operator in (Operator.add,)
 
     def binary_operator(self, operator: Operator, a: StringValue, b: StringValue):
         if operator == Operator.add:
             return StringValue(a.value + b.value)
         raise TypeException('Operator %r not implemented for strings' % operator)
-
 
     def __str__(self):
         return 'StringType'

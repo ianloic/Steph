@@ -1,6 +1,5 @@
 import typing
 
-import typesystem
 from ast.base import Expression, union
 from typesystem import Type, NOTHING
 
